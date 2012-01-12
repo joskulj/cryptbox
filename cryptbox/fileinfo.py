@@ -97,3 +97,45 @@ class FileInfo(object):
         """
         return self._timestamp
 
+class FileInfoList(object):
+    """
+    class to manage a list of FileInfo instances
+    """
+
+    def __init__(self):
+        """
+        creates an instance
+        """
+        self._dict = {}
+        self._list = []
+
+    def append(self, fileinfo):
+        """
+        appends a FileInfo instance
+        Parameters:
+        - fileinfo
+          FileInfo instance to append
+        """
+        key = fileinfo.get_relative_path()
+        self._dict[key] = fileinfo
+        self._list.append(fileinfo)
+
+    def get_entries(self):
+        """
+        Returns:
+        - list of entries
+        """
+        return self._list
+
+    def get_entry(self, relpath):
+        """
+        returns FileInfo by a relative path
+        Parameters:
+        Return:
+        - FileInfo
+        """
+        result = None
+        if relpath in self._dict().keys():
+            result = self._dict[relpath]
+        return result
+
