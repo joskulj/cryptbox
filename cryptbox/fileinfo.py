@@ -31,6 +31,7 @@ class FileInfo(object):
         self._rootpath = rootpath
         self._relpath = None
         self._timestamp = None
+        self._size = None
         if filepath:
             self.set_filepath(filepath)
 
@@ -67,6 +68,18 @@ class FileInfo(object):
         """
         self._timestamp = timestamp
 
+    def scan(self):
+        """
+        scans the file properties from the file system
+        """
+        path = self.get_absolute_path()
+        if os.path.exists(path):
+            self._timestamp = os.path.getmtime(path)
+            self._size = os.path.getsize(path)
+        else:
+            self._timestamp = None
+            self._size = None
+
     def get_relative_path(self):
         """
         Returns:
@@ -96,6 +109,13 @@ class FileInfo(object):
         - timestamp
         """
         return self._timestamp
+
+    def get_size(self):
+        """
+        Returns:
+        - fils size
+        """
+        return self._size
 
 class FileInfoList(object):
     """
