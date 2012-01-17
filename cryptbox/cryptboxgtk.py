@@ -37,12 +37,63 @@ class ConfigWindow(object):
         windowname = "config_window"
         self._widget_tree = gtk.glade.XML(gladefile, windowname)
         self._window = self._widget_tree.get_widget(windowname)
-
+        dic = {"on_config_window_destroy" : self.on_config_window_destroy
+                , "on_source_button_clicked" : self.on_source_button_clicked
+                , "on_destination_button_clicked" : self.on_destination_button_clicked
+                , "on_ok_button_clicked" : self.on_ok_button_clicked
+                , "on_cancel_button_clicked" : self.on_cancel_button_clicked }
+        self._widget_tree.signal_autoconnect(dic)
+ 
     def show(self):
         """
         displays the window
         """
         self._window.show()
+
+    def on_config_window_destroy(self, widget):
+        """
+        handles the event to destroy the window
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        gtk.main_quit()
+
+    def on_source_button_clicked(self, widget):
+        """
+        handles the event when the source button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        print "on_source_button_clicked"
+
+    def on_destination_button_clicked(self, widget):
+        """
+        handles the event when the destination button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        print "on_destination_button_clicked"
+
+    def on_ok_button_clicked(self, widget):
+        """
+        handles the event when the OK button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        print "on_ok_button_clicked"
+
+    def on_cancel_button_clicked(self, widget):
+        """
+        handles the event when the Cancel button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        gtk.main_quit()
 
 def show_config_window():
     """
@@ -53,4 +104,4 @@ def show_config_window():
     gtk.main()
 
 if __name__ == "__main__":
-    show_config_window()
+   show_config_window()

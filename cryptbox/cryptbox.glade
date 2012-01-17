@@ -11,6 +11,7 @@
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
+    <signal name="destroy" handler="on_config_window_destroy"/>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="config_dialog_box">
         <property name="visible">True</property>
@@ -21,12 +22,6 @@
             <property name="visible">True</property>
             <property name="n_rows">5</property>
             <property name="n_columns">2</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
             <child>
               <widget class="GtkLabel" id="label1">
                 <property name="visible">True</property>
@@ -87,6 +82,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_source_button_clicked"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -120,6 +116,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <signal name="clicked" handler="on_destination_button_clicked"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -162,6 +159,12 @@
                 <property name="bottom_attach">4</property>
               </packing>
             </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
           </widget>
           <packing>
             <property name="position">1</property>
@@ -172,13 +175,13 @@
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <widget class="GtkButton" id="button_cancel">
+              <widget class="GtkButton" id="cancel_button">
                 <property name="label" translatable="yes">_Cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_button_cancel_clicked"/>
+                <signal name="clicked" handler="on_cancel_button_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -187,13 +190,13 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button_ok">
+              <widget class="GtkButton" id="ok_button">
                 <property name="label" translatable="yes">_OK</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_underline">True</property>
-                <signal name="clicked" handler="on_button_ok_clicked"/>
+                <signal name="clicked" handler="on_ok_button_clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
