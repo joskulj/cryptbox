@@ -15,6 +15,8 @@
 import gtk
 import gtk.glade
 
+from config import *
+
 class ConfigWindow(object):
     """
     window to edit the cryptbox configuration
@@ -24,9 +26,11 @@ class ConfigWindow(object):
         """
         creates an instance
         """
-        self._running = False
+        self._config = CryptBoxConfig()
         self._widget_tree = None
         self._window = None
+        self._source_entry = None
+        self._destination_entry = None
         self.init_widget_tree()
 
     def init_widget_tree(self):
@@ -37,12 +41,19 @@ class ConfigWindow(object):
         windowname = "config_window"
         self._widget_tree = gtk.glade.XML(gladefile, windowname)
         self._window = self._widget_tree.get_widget(windowname)
+        self._source_entry = self._widget_tree.get_widget("source_entry")
+        self._destination_entry = self._widget_tree.get_widget("destination_entry")
         dic = {"on_config_window_destroy" : self.on_config_window_destroy
                 , "on_source_button_clicked" : self.on_source_button_clicked
                 , "on_destination_button_clicked" : self.on_destination_button_clicked
                 , "on_ok_button_clicked" : self.on_ok_button_clicked
                 , "on_cancel_button_clicked" : self.on_cancel_button_clicked }
         self._widget_tree.signal_autoconnect(dic)
+        if self._config.exists():
+            if self._config.get_source_directory():
+                self._source_entry.set_text(self._config.get_source_directory())
+            if self._config.get_destination_directory():
+                self._destination_entry.set_text(self._config.get_destination_directory())
  
     def show(self):
         """
@@ -84,7 +95,24 @@ class ConfigWindow(object):
         - widget
           widget that triggered the event
         """
-        print "on_ok_button_clicked"
+        ok_flag = True
+        source = self._source_entry.get_text()
+        destination = self._destination_entry.get_text()
+        save_flag = False
+        if len(source) > 0:
+            self._config.set_source_directory(source)
+            save_flag = True
+        else:
+            self._config.set_source_directory(None)
+        if len(destination) > 0:
+            self._config.set_destination_directory(destination)
+            save_flag = True
+        else:
+            self._config.set_destination_directory(None)
+        if save_flag:
+            self._config.save()
+        if ok_flag:
+            gtk.main_quit()
 
     def on_cancel_button_clicked(self, widget):
         """

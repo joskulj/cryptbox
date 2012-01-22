@@ -16,6 +16,8 @@
 
 import sys
 
+import cryptboxgtk
+
 def print_usage():
     """
     prints the help text about using cryptbox
@@ -32,7 +34,7 @@ def configure():
     """
     configure cryptbox
     """
-    pass
+    cryptboxgtk.show_config_window()
 
 def start():
     """
