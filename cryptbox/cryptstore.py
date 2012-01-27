@@ -14,8 +14,10 @@
 
 import getpass
 import hashlib
+import json
 import random
 import struct
+import tempfile
 import os.path
 
 from Crypto.Cipher import AES
@@ -154,21 +156,54 @@ class CryptStoreEntry(object):
         self._state = state
         self._entry_id = entry_id
 
+    def get_filepath(self):
+        """
+        Returns:
+        - relative filepath
+        """
+        return self._filepath
+
+    def get_timestamp(self):
+        """
+        Returns:
+        - timestamp of the file
+        """
+        return self._timestamp
+
+    def get_state(self):
+        """
+        Returns:
+        - state of the file
+        """
+        return self._state
+
+    def get_entry_id(self):
+        """
+        Returns:
+        - unique id of the file
+        """
+        return self._entry_id
+
 class CryptStore(object):
     """
     class to store encrypted files
     """
 
-    def __init__(self):
+    def __init__(self, rootpath):
         """
         creates an instance
+        Parameters:
+        - rootpath
+          root path of the store
         """
+        self._rootpath
         self._config = CryptBoxConfig()
-        self._entres = []
+        self._entries = []
         self._max_id = 1
         self._password = None
         self._password_hash = None
         self._load_password_hash()
+        self._load_entries()
 
     def _load_entries(self):
         """
@@ -210,6 +245,35 @@ class CryptStore(object):
             hash_file.close()
         except IOError:
             print "Unable to write %s" % filepath
+
+    def _load_entries(self):
+        """
+        loads the file entries
+        """
+        pass
+
+    def _save_entries(self):
+        """
+        saves the file entries
+        """
+        tempname = tempfile.NamedTemporaryFile().name
+        store_dict = {}
+        store_dict["max_id"] = self._max_id
+        entry_list = []
+        for entry in self._entries:
+            entry_dict = {}
+            entry_dict["filepath"] = entry.get_filepath()
+            entry_dict["timestamp"] = entry.get_timestamp()
+            entry_dict["state"] = entry.get_state()
+            entry_dict["entry_id"] = entry.get_entry_id()
+            entry_list.append(entry_dict)
+        store_dict["entries"] = entry_list
+        line = json.dumps(store_dict)
+        print line
+        tempfile = open(tempname, "w")
+        tempfile.write(line)
+        tempfile.close()
+        # TODO: copy encrypted file to store root
 
     def has_password(self):
         """
@@ -257,3 +321,26 @@ class CryptStore(object):
         if self.check_password(password):
             self._password = password
 
+    def upload_file(self, fileinfo):
+        """
+        uploads a file to the store
+        - fileinfo
+          file info of the (local) file to upload
+        """
+        # upload the file
+        # TODO: implement this
+        # create an entry
+        filepath = fileinfo.get_relative_path()
+        timestamp = fileinfo.get_timestamp()
+        state = STATE_UPLOADED
+        entry_id = self._max_id
+        self._max_id = self._max_id + 1
+        entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
+        self._entries.append(entry)
+        self._save_entries()
+
+    def download_file(self, entry, destpath):
+        pass
+
+    def delete_file(self, entry):
+        pass
