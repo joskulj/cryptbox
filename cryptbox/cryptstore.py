@@ -18,9 +18,9 @@ import json
 import random
 import struct
 import tempfile
-import os.path
 
 from Crypto.Cipher import AES
+from tempfile import *
 
 from config import *
 
@@ -196,7 +196,7 @@ class CryptStore(object):
         - rootpath
           root path of the store
         """
-        self._rootpath
+        self._rootpath = rootpath
         self._config = CryptBoxConfig()
         self._entries = []
         self._max_id = 1
@@ -221,7 +221,7 @@ class CryptStore(object):
         """
         loads the password hash
         """
-        destination = self._config_get_destination_dir()
+        destination = self._config.get_destination_directory()
         fname = "cryptbox.0000000"
         filepath = os.path.join(destination, fname)
         try:
@@ -256,7 +256,7 @@ class CryptStore(object):
         """
         saves the file entries
         """
-        tempname = tempfile.NamedTemporaryFile().name
+        tempname = NamedTemporaryFile().name
         store_dict = {}
         store_dict["max_id"] = self._max_id
         entry_list = []
