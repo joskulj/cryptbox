@@ -14,6 +14,7 @@
 
 import gtk
 import gtk.glade
+import sys
 
 from config import *
 
@@ -130,6 +131,20 @@ def show_config_window():
     window = ConfigWindow()
     window.show()
     gtk.main()
+
+def show_error_message(message, exit=False):
+    """
+    displays an error message
+    Parameters:
+    - message
+      error message to display
+    - exit
+      flag, if the application should terminate
+    """
+    print "Error: %s" % message
+    # TODO: implement GTK dialog
+    if exit:
+        sys.exit(-1)
 
 if __name__ == "__main__":
    show_config_window()
