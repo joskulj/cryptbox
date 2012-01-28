@@ -15,6 +15,8 @@
 import getpass
 import hashlib
 import json
+import os
+import os.path
 import random
 import struct
 import tempfile
@@ -23,6 +25,7 @@ from Crypto.Cipher import AES
 from tempfile import *
 
 from config import *
+from cryptboxgtk import *
 
 # helper functions for encryption and decryption
 
@@ -196,8 +199,12 @@ class CryptStore(object):
         - rootpath
           root path of the store
         """
-        self._rootpath = rootpath
         self._config = CryptBoxConfig()
+        self._rootpath = self._config.get_destination_directory()
+        if self._rootpath == None or len(self._rootpath) == 0:
+            show_error_message("No destination directory set.", True)
+        if not os.path.isdir(self._rootpath):
+            show_error_message("Destination directory not valid: %s" % self._rootpath, True)
         self._entries = []
         self._max_id = 1
         self._password = None
@@ -221,7 +228,7 @@ class CryptStore(object):
         """
         loads the password hash
         """
-        destination = self._config.get_destination_directory()
+        destination = self._rootpath
         fname = "cryptbox.0000000"
         filepath = os.path.join(destination, fname)
         try:
@@ -236,7 +243,7 @@ class CryptStore(object):
         """
         saves the password hash
         """
-        destination = self._config_get_destination_dir()
+        destination = self._root
         fname = "cryptbox.0000000"
         filepath = os.path.join(destination, fname)
         try:
@@ -244,7 +251,7 @@ class CryptStore(object):
             hash_file.write(self._password_hash)
             hash_file.close()
         except IOError:
-            print "Unable to write %s" % filepath
+            show_error_message("Unable to write %s." % filepath, True)
 
     def _load_entries(self):
         """
@@ -257,6 +264,7 @@ class CryptStore(object):
         saves the file entries
         """
         tempname = NamedTemporaryFile().name
+        # Create a JSON dictionary
         store_dict = {}
         store_dict["max_id"] = self._max_id
         entry_list = []
@@ -269,11 +277,23 @@ class CryptStore(object):
             entry_list.append(entry_dict)
         store_dict["entries"] = entry_list
         line = json.dumps(store_dict)
-        print line
-        tempfile = open(tempname, "w")
-        tempfile.write(line)
-        tempfile.close()
-        # TODO: copy encrypted file to store root
+        # Write JSON to temporary file
+        try:
+            tempfile = open(tempname, "w")
+            tempfile.write(line)
+            tempfile.close()
+        except IOError:
+            show_error_message("Unable to create temporary file %s." % tempname, True)
+        # Copy encrypted temporary file to cryptstore
+        key = self.get_key()
+        fname = "cryptbox.0000001"
+        destpath = os.path.join(self._rootpath, fname)
+        encrypt_file(tempname, destpath, key)
+        # Delete temporary file
+        try:
+            os.remove(tempname)
+        except OSError:
+            show_error_message("Unable to remove temporary file %s." % tempname)
 
     def has_password(self):
         """
@@ -307,9 +327,18 @@ class CryptStore(object):
         """
         self._password = password
         m = hashlib.sha512()
-        m.update(passowrd)
+        m.update(password)
         self._password_hash = m.hexdigest()
         self._save_password_hash()
+
+    def get_key(self):
+        """
+        Return:
+        - key to encrypt or decrypt files
+        """
+        if self._password == None:
+            show_error_message("No passort set.", True)
+        return normalize_key(self._password)
 
     def set_password(self, password):
         """
@@ -330,6 +359,8 @@ class CryptStore(object):
         # upload the file
         # TODO: implement this
         # create an entry
+        if self._password == None:
+            show_error_message("No passwort set.", True)
         filepath = fileinfo.get_relative_path()
         timestamp = fileinfo.get_timestamp()
         state = STATE_UPLOADED
@@ -340,6 +371,8 @@ class CryptStore(object):
         self._save_entries()
 
     def download_file(self, entry, destpath):
+        if self._password == None:
+            show_error_message("No passort set.", True)
         pass
 
     def delete_file(self, entry):
