@@ -13,6 +13,9 @@
 # GNU General Public License for more details.
 
 import os.path
+import getpass
+
+from couchhelper import *
 
 class FileInfo(object):
     """
@@ -28,12 +31,26 @@ class FileInfo(object):
         - filepath
           file path to set
         """
+        self._database = self.init_database()
         self._rootpath = rootpath
         self._relpath = None
-        self._timestamp = None
+        self._file_timestamp = None
         self._size = None
+        self._state = None
+        self._state_timestamp = None
         if filepath:
             self.set_filepath(filepath)
+            self.read_state()
+
+    def init_database(self):
+        """
+        inits the database to store state information
+        Returns:
+        - CouchDatabase instance
+        """
+        user = getpass.getuser()
+        database_name = "cryptbox-%s" % user
+        return CouchDatabase(database_name)
 
     def set_filepath(self, filepath):
         """
@@ -59,14 +76,18 @@ class FileInfo(object):
         """
         self._relpath = relpath
 
-    def set_timestamp(self, timestamp):
+    def update_state(self, state, state_timestamp):
         """
-        sets the timestamp
+        sets the state and the corresponding timestamp
         Parameters:
-        - timestamp
-          tirmestamp to set
+        - state
+          state to set
+        - state_timestamp
+          tirmestamp of last state change
         """
-        self._timestamp = timestamp
+        self._state = state
+        self._state_timestamp = state_timestamp
+        self.save_state()
 
     def scan(self):
         """
@@ -79,6 +100,28 @@ class FileInfo(object):
         else:
             self._timestamp = None
             self._size = None
+
+    def read_state(self):
+        """
+        reads the state information
+        """
+        key = CouchKey([self._relpath])
+        doc = self._database.load_document(key.get_key())
+        if doc:
+            self._state = doc.get_value("state")
+            self._state_timestamp = doc.get_value("state_timestamp")
+
+    def save_state(self):
+        """
+        """
+        key = CouchKey([self._relpath])
+        doc = self._database.load_document(key.get_key())
+        if doc == None:
+            doc = CouchDocument(key.get_key())
+        doc.set_value("relpath", self._relpath)
+        doc.set_value("state", self._state)
+        doc.set_value("state_timestamp", self._state_timestamp)
+        self._database.save_document(doc)
 
     def get_relative_path(self):
         """
@@ -103,12 +146,28 @@ class FileInfo(object):
             result = os.path.join(self._rootpath, self._relpath)
         return result
 
-    def get_timestamp(self):
+    def get_file_timestamp(self):
         """
         Returns:
-        - timestamp
+        - timestamp of the file
         """
-        return self._timestamp
+        return self._file_timestamp
+
+    def get_state(self):
+        """
+        Returns:
+        - state of the file
+        Returns:
+        - state of the file
+        """
+        return self._state
+
+    def get_state_timestamp(self):
+        """
+        Returns:
+        - timestamp of the state
+        """
+        return self._state_timestamp
 
     def get_size(self):
         """

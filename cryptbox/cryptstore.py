@@ -20,6 +20,7 @@ import os.path
 import random
 import struct
 import tempfile
+import time
 
 from Crypto.Cipher import AES
 from tempfile import *
@@ -187,6 +188,24 @@ class CryptStoreEntry(object):
         """
         return self._entry_id
 
+    def set_state(self, state):
+        """
+        sets the state
+        Parameters:
+        - state
+          state to set
+        """
+        self._state = state
+
+    def set_timestamp(self, timestamp):
+        """
+        sets the timestamp
+        Parameters:
+        - timestamp
+          timestamp to set
+        """
+        self._timestamp = timestamp
+
 class CryptStore(object):
     """
     class to store encrypted files
@@ -206,23 +225,11 @@ class CryptStore(object):
         if not os.path.isdir(self._rootpath):
             show_error_message("Destination directory not valid: %s" % self._rootpath, True)
         self._entries = []
-        self._max_id = 1
+        self._entry_dict = {}
+        self._max_id = 2
         self._password = None
         self._password_hash = None
         self._load_password_hash()
-        self._load_entries()
-
-    def _load_entries(self):
-        """
-        loads the list of entries
-        """
-        pass
-
-    def _save_entries(self):
-        """
-        saves the list of entries
-        """
-        pass
 
     def _load_password_hash(self):
         """
@@ -243,7 +250,7 @@ class CryptStore(object):
         """
         saves the password hash
         """
-        destination = self._root
+        destination = self._rootpath
         fname = "cryptbox.0000000"
         filepath = os.path.join(destination, fname)
         try:
@@ -257,14 +264,52 @@ class CryptStore(object):
         """
         loads the file entries
         """
-        pass
+        # decrypt entries file to a temporary file
+        key = self.get_key()
+        fname = "cryptbox.0000001"
+        srcpath = os.path.join(self._rootpath, fname)
+        if not os.path.isfile(srcpath):
+            # entry file does not exist
+            return
+        tempname = NamedTemporaryFile().name
+        decrypt_file(srcpath, tempname, key)
+        # read decrypted file
+        line = None
+        try:
+            tempfile = open(tempname, "r")
+            line = tempfile.readline()
+            tempfile.close()
+        except IOError:
+            show_error_message("Unable to read temporary file %s." % tempname, True)
+        # parse JSON content
+        store_dict = json.loads(line)
+        if type(store_dict) == dict:
+            self._max_id = store_dict["max_id"]
+            entry_list = store_dict["entries"]
+            self._entries = []
+            self._entry_dict = {}
+            for entry_dict in entry_list:
+                filepath = entry_dict["filepath"]
+                timestamp = entry_dict["timestamp"]
+                state = entry_dict["state"]
+                entry_id = entry_dict["entry_id"]
+                entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
+                self._entries.append(entry)
+                self._entry_dict[filepath] = entry
+        else:
+            show_error_message("Unable to parse temporary file %s." % tempname, True)
+        # delete temporary file
+        try:
+            os.remove(tempname)
+        except OSError:
+            show_error_message("Unable to remove temporary file %s." % tempname)
 
     def _save_entries(self):
         """
         saves the file entries
         """
         tempname = NamedTemporaryFile().name
-        # Create a JSON dictionary
+        # create a JSON dictionary
         store_dict = {}
         store_dict["max_id"] = self._max_id
         entry_list = []
@@ -277,23 +322,30 @@ class CryptStore(object):
             entry_list.append(entry_dict)
         store_dict["entries"] = entry_list
         line = json.dumps(store_dict)
-        # Write JSON to temporary file
+        # crite JSON to temporary file
         try:
             tempfile = open(tempname, "w")
             tempfile.write(line)
             tempfile.close()
         except IOError:
             show_error_message("Unable to create temporary file %s." % tempname, True)
-        # Copy encrypted temporary file to cryptstore
+        # copy encrypted temporary file to cryptstore
         key = self.get_key()
         fname = "cryptbox.0000001"
         destpath = os.path.join(self._rootpath, fname)
         encrypt_file(tempname, destpath, key)
-        # Delete temporary file
+        # delete temporary file
         try:
             os.remove(tempname)
         except OSError:
             show_error_message("Unable to remove temporary file %s." % tempname)
+
+    def get_entries(self):
+        """
+        Returns:
+        - list of CryptStoreEntry instances
+        """
+        return self._entries
 
     def has_password(self):
         """
@@ -330,6 +382,7 @@ class CryptStore(object):
         m.update(password)
         self._password_hash = m.hexdigest()
         self._save_password_hash()
+        self._load_entries()
 
     def get_key(self):
         """
@@ -349,6 +402,7 @@ class CryptStore(object):
         """
         if self.check_password(password):
             self._password = password
+            self._load_entries()
 
     def upload_file(self, fileinfo):
         """
@@ -356,19 +410,37 @@ class CryptStore(object):
         - fileinfo
           file info of the (local) file to upload
         """
-        # upload the file
-        # TODO: implement this
         # create an entry
         if self._password == None:
             show_error_message("No passwort set.", True)
+        # set entry information
         filepath = fileinfo.get_relative_path()
-        timestamp = fileinfo.get_timestamp()
+        timestamp = time.time()
         state = STATE_UPLOADED
-        entry_id = self._max_id
-        self._max_id = self._max_id + 1
-        entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
-        self._entries.append(entry)
+        # check, if entry already exists
+        entry = None
+        if filepath in self._entry_dict.keys():
+            entry = self._entry_dict[filepath]
+            entry_id = entry.get_entry_id()
+        else:
+            entry_id = self._max_id
+            self._max_id = self._max_id + 1
+        # upload the encrypted file
+        srcpath = fileinfo.get_absolute_path()
+        destname = "cryptbox.%06i" % entry_id
+        destpath = os.path.join(self._rootpath, destname)
+        encrypt_file(srcpath, destpath, self.get_key())
+        # update entry information
+        if entry == None:
+            entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
+            self._entries.append(entry)
+            self._entry_dict[filepath] = entry
+        else:
+            entry.set_timestamp(timestamp)
+            entry.set_state(state)
         self._save_entries()
+        # update file info
+        fileinfo.update_state(state, timestamp)
 
     def download_file(self, entry, destpath):
         if self._password == None:
