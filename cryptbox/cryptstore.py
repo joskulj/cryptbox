@@ -236,7 +236,7 @@ class CryptStore(object):
         loads the password hash
         """
         destination = self._rootpath
-        fname = "cryptbox.0000000"
+        fname = "cryptbox.00000000"
         filepath = os.path.join(destination, fname)
         try:
             hash_file = open(filepath, "r")
@@ -251,7 +251,7 @@ class CryptStore(object):
         saves the password hash
         """
         destination = self._rootpath
-        fname = "cryptbox.0000000"
+        fname = "cryptbox.00000000"
         filepath = os.path.join(destination, fname)
         try:
             hash_file = open(filepath, "w")
@@ -266,7 +266,7 @@ class CryptStore(object):
         """
         # decrypt entries file to a temporary file
         key = self.get_key()
-        fname = "cryptbox.0000001"
+        fname = "cryptbox.00000001"
         srcpath = os.path.join(self._rootpath, fname)
         if not os.path.isfile(srcpath):
             # entry file does not exist
@@ -331,7 +331,7 @@ class CryptStore(object):
             show_error_message("Unable to create temporary file %s." % tempname, True)
         # copy encrypted temporary file to cryptstore
         key = self.get_key()
-        fname = "cryptbox.0000001"
+        fname = "cryptbox.00000001"
         destpath = os.path.join(self._rootpath, fname)
         encrypt_file(tempname, destpath, key)
         # delete temporary file
@@ -427,7 +427,7 @@ class CryptStore(object):
             self._max_id = self._max_id + 1
         # upload the encrypted file
         srcpath = fileinfo.get_absolute_path()
-        destname = "cryptbox.%06i" % entry_id
+        destname = "cryptbox.%08i" % entry_id
         destpath = os.path.join(self._rootpath, destname)
         encrypt_file(srcpath, destpath, self.get_key())
         # update entry information
