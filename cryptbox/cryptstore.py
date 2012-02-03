@@ -445,6 +445,7 @@ class CryptStore(object):
     def download_file(self, entry, destpath):
         if self._password == None:
             show_error_message("No passort set.", True)
+        # implement this
         pass
 
     def delete_file(self, entry):
