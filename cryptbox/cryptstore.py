@@ -442,10 +442,27 @@ class CryptStore(object):
         # update file info
         fileinfo.update_state(state, timestamp)
 
-    def download_file(self, entry, destpath):
+    def download_file(self, entry, rootpath):
+        """
+        downloads a file
+        Parameters:
+        - entry
+          entry that identifies the file to download
+        - destroot
+          root path of the destination to copy the file to
+        """
         if self._password == None:
             show_error_message("No passort set.", True)
-        # implement this
+        # create source path
+        entry_id = entry.get_entry_id()
+        srcname = "cryptbox.%08i" % entry_id
+        srcpath = os.path.join(self._rootpath, srcname)
+        # create destination path
+        destpath = os.path.join(rootpath, entry.get_filepath())
+        # download the file
+        decrypt_file(srcpath, destpath, self.get_key())
+        # update file info
+        # TODO: implement updating file info
         pass
 
     def delete_file(self, entry):
