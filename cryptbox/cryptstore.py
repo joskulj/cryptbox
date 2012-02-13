@@ -26,7 +26,7 @@ from Crypto.Cipher import AES
 from tempfile import *
 
 from config import *
-from cryptboxgtk import *
+from fileinfo import *
 
 # helper functions for encryption and decryption
 
@@ -134,8 +134,8 @@ def decrypt_file(srcfilename, destfilename, key, chunksize=64*1024):
     srcfile.close()
     destfile.close()
 
-STATE_UPLOADED = "u"
-STATE_DELETED = "d"
+# STATE_UPLOADED = "u"
+# STATE_DELETED = "d"
 
 class CryptStoreEntry(object):
     """
@@ -211,12 +211,9 @@ class CryptStore(object):
     class to store encrypted files
     """
 
-    def __init__(self, rootpath):
+    def __init__(self):
         """
         creates an instance
-        Parameters:
-        - rootpath
-          root path of the store
         """
         self._config = CryptBoxConfig()
         self._rootpath = self._config.get_destination_directory()
@@ -416,7 +413,7 @@ class CryptStore(object):
         # set entry information
         filepath = fileinfo.get_relative_path()
         timestamp = time.time()
-        state = STATE_UPLOADED
+        state = FILEINFO_STATE_UPLOADED
         # check, if entry already exists
         entry = None
         if filepath in self._entry_dict.keys():
@@ -462,8 +459,10 @@ class CryptStore(object):
         # download the file
         decrypt_file(srcpath, destpath, self.get_key())
         # update file info
-        # TODO: implement updating file info
-        pass
+        fileinfo = FileInfo(rootpath, destpath)
+        timestamp = time.time()
+        state = FILEINFO_STATE_DOWNLOADED
+        fileinfo.update_state(state, timestamp)
 
     def delete_file(self, entry):
         pass

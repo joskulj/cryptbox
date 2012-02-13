@@ -17,6 +17,10 @@ import getpass
 
 from couchhelper import *
 
+FILEINFO_STATE_UPLOADED = "uploaded"
+FILEINFO_STATE_DOWNLOADED = "downloaded" 
+FILEINFO_STATE_DELETED = "deleted"
+
 class FileInfo(object):
     """
     class to manage file information
