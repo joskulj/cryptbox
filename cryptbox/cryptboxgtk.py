@@ -62,6 +62,26 @@ class ConfigWindow(object):
         """
         self._window.show()
 
+    def choose_folder(self):
+        """
+        opens a dialog to choose a folder
+        Returns:
+        - chosen folder or None if dialog was canceled
+        """
+        result = None
+        title = "Choose folder"
+        parent = self._window 
+        action = gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER
+        buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                   gtk.STOCK_OPEN, gtk.RESPONSE_OK)
+        dialog = gtk.FileChooserDialog(title, parent, action, buttons)
+        dialog.set_default_response(gtk.RESPONSE_OK)
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            result = dialog.get_filename()
+        dialog.destroy()
+        return result
+
     def on_config_window_destroy(self, widget):
         """
         handles the event to destroy the window
@@ -78,7 +98,9 @@ class ConfigWindow(object):
         - widget
           widget that triggered the event
         """
-        print "on_source_button_clicked"
+        source = self.choose_folder()
+        if source:
+            self._source_entry.set_text(source)
 
     def on_destination_button_clicked(self, widget):
         """
@@ -87,7 +109,9 @@ class ConfigWindow(object):
         - widget
           widget that triggered the event
         """
-        print "on_destination_button_clicked"
+        destination = self.choose_folder()
+        if destination:
+            self._destination_entry.set_text(destination)
 
     def on_ok_button_clicked(self, widget):
         """
