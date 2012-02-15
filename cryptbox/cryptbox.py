@@ -31,14 +31,9 @@ CRYPTBOX_LISTENER_INTERVAL = 2
 RUNNER_STATE_NOT_STARTED = 0
 RUNNER_STATE_RUNNING = 1
 RUNNER_STATE_STOPPING = 2
-RUNNER_STATE_PAUSING = 3
 
 # Commands to control the Runner Thread
 COMMAND_STOP = "stop"
-COMMAND_PAUSE = "pause"
-COMMAND_CONTINUE = "continue"
-
-COMMAND_LIST = [ COMMAND_STOP, COMMAND_PAUSE, COMMAND_CONTINUE ]
 
 class Runner(object):
     """
@@ -49,7 +44,7 @@ class Runner(object):
         """
         creates an instance
         """
-        self._state = STATE_NOT_STARTED
+        self._state = RUNNER_STATE_NOT_STARTED
         self._sleep_interval = CRYPTBOX_RUNNER_INTERVAL
 
     def is_running(self):
@@ -58,39 +53,25 @@ class Runner(object):
         - True:  server is running
         - False: server is not running
         """
-        return self._state != STATE_STOPPING
+        return self._state != RUNNER_STATE_STOPPING
 
     def stop(self):
         """
         signals the thread to stop
         """
-        self._state = STATE_STOPPING
-
-    def start_pausing(self):
-        """
-        signals the thread to pause
-        """
-        self._state = STATE_PAUSING
-
-    def stop_pausing(self):
-        """
-        signals the thread to stop pausing
-        """
-        self._state = STATE_RUNNING
+        self._state = RUNNER_STATE_STOPPING
 
     def start(self):
         """
         starts the thread
         """
-        self._state = STATE_RUNNING
+        self._state = RUNNER_STATE_RUNNING
         while self.is_running():
             print "loop entered."
-            if self._state == STATE_RUNNING:
+            if self._state == RUNNER_STATE_RUNNING:
                 print "RunnerThread running."
                 # TODO: start downloader
                 # TODO: start uploader
-            if self._state == STATE_PAUSING:
-                print "RunnerThread paused."
             print "sleeping."
             time.sleep(self._sleep_interval)
             print "wake up."
@@ -139,16 +120,12 @@ class ListenerThread(Thread):
             if data == COMMAND_STOP:
                 self._runner.stop()
                 flag = False
-            if data == COMMAND_PAUSE:
-                self._runner.start_pausing()
-            if data == COMMAND_CONTINUE:
-                self._runner.stop_pausing()
             time.sleep(self._sleep_interval)
         print "DaemonListenerThread stopped."
 
-class DaemonClient(object):
+class RunnerClient(object):
     """
-    client to communicate with the listener thread
+    client to communicate with the Listener Thread
     """
 
     def __init__(self, port):
@@ -176,7 +153,6 @@ class DaemonClient(object):
         """
         self.send(COMMAND_STOP)
 
-
 def print_usage():
     """
     prints the help text about using cryptbox
@@ -199,13 +175,17 @@ def start():
     """
     starts the cryptbox daemon
     """
-    pass
+    runner = Runner()
+    listener = ListenerThread(runner, CRYPTBOX_PORT)
+    listener.start()
+    runner.start()
 
 def stop():
     """
     stops the cryptbox daemon
     """
-    pass
+    client = RunnerClient(CRYPTBOX_PORT)
+    client.stop()
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
