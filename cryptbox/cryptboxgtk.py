@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 
 import gtk
-import gtk.glade
+import pygtk
 import sys
 
 from config import *
@@ -30,31 +30,31 @@ class ConfigWindow(object):
         self._config = CryptBoxConfig()
         self._widget_tree = None
         self._window = None
-        self._source_entry = None
-        self._destination_entry = None
-        self.init_widget_tree()
+        self._entry_source = None
+        self._entry_destination = None
+        self.init_widgets()
 
-    def init_widget_tree(self):
+    def init_widgets(self):
         """
-        initializes the widget tree
+        initializes the widgets
         """
-        gladefile = "cryptbox.glade"
-        windowname = "config_window"
-        self._widget_tree = gtk.glade.XML(gladefile, windowname)
-        self._window = self._widget_tree.get_widget(windowname)
-        self._source_entry = self._widget_tree.get_widget("source_entry")
-        self._destination_entry = self._widget_tree.get_widget("destination_entry")
+        builder = gtk.Builder()
+        builder.add_from_file("cryptbox.glade")
+        self._window = builder.get_object("config_window")
+        self._entry_source = builder.get_object("entry_source")
+        self._entry_destination = builder.get_object("entry_destination")
+        self._window.show()
         dic = {"on_config_window_destroy" : self.on_config_window_destroy
-                , "on_source_button_clicked" : self.on_source_button_clicked
-                , "on_destination_button_clicked" : self.on_destination_button_clicked
-                , "on_ok_button_clicked" : self.on_ok_button_clicked
-                , "on_cancel_button_clicked" : self.on_cancel_button_clicked }
-        self._widget_tree.signal_autoconnect(dic)
+                , "on_button_source_clicked" : self.on_button_source_clicked
+                , "on_button_destination_clicked" : self.on_button_destination_clicked
+                , "on_button_ok_clicked" : self.on_button_ok_clicked
+                , "on_button_cancel_clicked" : self.on_button_cancel_clicked }
+        builder.connect_signals(dic)
         if self._config.exists():
             if self._config.get_source_directory():
-                self._source_entry.set_text(self._config.get_source_directory())
+                self._entry_source.set_text(self._config.get_source_directory())
             if self._config.get_destination_directory():
-                self._destination_entry.set_text(self._config.get_destination_directory())
+                self._entry_destination.set_text(self._config.get_destination_directory())
  
     def show(self):
         """
@@ -89,9 +89,10 @@ class ConfigWindow(object):
         - widget
           widget that triggered the event
         """
+        print "close"
         gtk.main_quit()
 
-    def on_source_button_clicked(self, widget):
+    def on_button_source_clicked(self, widget):
         """
         handles the event when the source button is clicked
         Parameters:
@@ -100,9 +101,9 @@ class ConfigWindow(object):
         """
         source = self.choose_folder()
         if source:
-            self._source_entry.set_text(source)
+            self._entry_source.set_text(source)
 
-    def on_destination_button_clicked(self, widget):
+    def on_button_destination_clicked(self, widget):
         """
         handles the event when the destination button is clicked
         Parameters:
@@ -111,9 +112,9 @@ class ConfigWindow(object):
         """
         destination = self.choose_folder()
         if destination:
-            self._destination_entry.set_text(destination)
+            self._entry_destination.set_text(destination)
 
-    def on_ok_button_clicked(self, widget):
+    def on_button_ok_clicked(self, widget):
         """
         handles the event when the OK button is clicked
         Parameters:
@@ -121,8 +122,8 @@ class ConfigWindow(object):
           widget that triggered the event
         """
         ok_flag = True
-        source = self._source_entry.get_text()
-        destination = self._destination_entry.get_text()
+        source = self._entry_source.get_text()
+        destination = self._entry_destination.get_text()
         save_flag = False
         if len(source) > 0:
             self._config.set_source_directory(source)
@@ -139,7 +140,7 @@ class ConfigWindow(object):
         if ok_flag:
             gtk.main_quit()
 
-    def on_cancel_button_clicked(self, widget):
+    def on_button_cancel_clicked(self, widget):
         """
         handles the event when the Cancel button is clicked
         Parameters:
