@@ -89,7 +89,6 @@ class ConfigWindow(object):
         - widget
           widget that triggered the event
         """
-        print "close"
         gtk.main_quit()
 
     def on_button_source_clicked(self, widget):
@@ -149,6 +148,83 @@ class ConfigWindow(object):
         """
         gtk.main_quit()
 
+class LoginWindow(object):
+    """
+    window to enter the (existing) password at the start of CryptBox
+    """
+
+    def __init__(self, cryptstore):
+        """
+        creates an instance
+        Parameters:
+        - cryptstore
+          cryptstore to set the password
+        """
+        self._ok_flag = False
+        self._cryptstore = cryptstore
+        self._entry_password = None
+        self.init_widgets()
+
+    def is_ok(self):
+        """
+        checks, if login was successful
+        Returns:
+        - True:  login was successful
+        - False: login was not successful
+        """
+        return self._ok_flag
+
+    def init_widgets(self):
+        """
+        initializes the widgets
+        """
+        builder = gtk.Builder()
+        builder.add_from_file("cryptbox.glade")
+        self._window = builder.get_object("login_window")
+        self._entry_password = builder.get_object("entry_password")
+        dic = {"on_login_window_destroy" : self.on_config_window_destroy
+                , "on_button_ok_clicked" : self.on_button_ok_clicked
+                , "on_button_cancel_clicked" : self.on_button_cancel_clicked }
+        builder.connect_signals(dic)
+ 
+    def show(self):
+        """
+        displays the window
+        """
+        self._window.show()
+
+
+    def on_config_window_destroy(self, widget):
+        """
+        handles the event to destroy the window
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        gtk.main_quit()
+
+    def on_button_ok_clicked(self, widget):
+        """
+        handles the event when the OK button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        print "Button OK"
+        self._ok_flag = True
+        gtk.main_quit()
+
+    def on_button_cancel_clicked(self, widget):
+        """
+        handles the event when the Cancel button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        print "Button Cancel"
+        gtk.main_quit()
+
+
 def show_config_window():
     """
     shows the configuration dialog
@@ -156,6 +232,21 @@ def show_config_window():
     window = ConfigWindow()
     window.show()
     gtk.main()
+
+def show_login_window(cryptstore):
+    """
+    shows the login window
+    Parameters:
+    - cryptstore
+      cryptstore to login
+    Returns:
+    - True:  login was successful
+    - False: login was not successful
+    """
+    window = LoginWindow(cryptstore)
+    window.show()
+    gtk.main()
+    return window.is_ok()
 
 def show_error_message(message, exit=False):
     """
@@ -171,5 +262,8 @@ def show_error_message(message, exit=False):
     if exit:
         sys.exit(-1)
 
+
 if __name__ == "__main__":
-   show_config_window()
+    import cryptstore
+    cryptstore = cryptstore.CryptStore()
+    print show_login_window(cryptstore)

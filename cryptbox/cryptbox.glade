@@ -10,7 +10,7 @@
     <property name="type_hint">dialog</property>
     <signal name="destroy" handler="on_config_window_destroy" swapped="no"/>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox1">
+      <object class="GtkBox" id="dialog-vbox1">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
@@ -215,16 +215,17 @@
     <property name="title" translatable="yes">Login to CryptBox</property>
     <property name="type_hint">dialog</property>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox2">
+      <object class="GtkBox" id="dialog-vbox2">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
+        <signal name="destroy" handler="on_login_window_destroy" swapped="no"/>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="dialog-action_area2">
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="button1">
+              <object class="GtkButton" id="login_button_cancel">
                 <property name="label" translatable="yes">_Cancel</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
@@ -232,6 +233,7 @@
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
+                <signal name="clicked" handler="on_button_cancel_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -240,7 +242,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_o">
+              <object class="GtkButton" id="login_button_ok">
                 <property name="label" translatable="yes">_OK</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
@@ -248,6 +250,7 @@
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
+                <signal name="clicked" handler="on_button_ok_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -264,7 +267,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkVBox" id="box1">
+          <object class="GtkHBox" id="hbox4">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
@@ -304,8 +307,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">button1</action-widget>
-      <action-widget response="0">button_o</action-widget>
+      <action-widget response="0">login_button_cancel</action-widget>
+      <action-widget response="0">login_button_ok</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="new_password_window">
@@ -313,7 +316,7 @@
     <property name="border_width">5</property>
     <property name="type_hint">dialog</property>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox3">
+      <object class="GtkBox" id="dialog-vbox3">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
