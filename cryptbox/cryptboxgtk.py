@@ -162,6 +162,7 @@ class LoginWindow(object):
         """
         self._ok_flag = False
         self._cryptstore = cryptstore
+        self._window = None
         self._entry_password = None
         self.init_widgets()
 
@@ -186,7 +187,9 @@ class LoginWindow(object):
                 , "on_button_ok_clicked" : self.on_button_ok_clicked
                 , "on_button_cancel_clicked" : self.on_button_cancel_clicked }
         builder.connect_signals(dic)
- 
+        builder.get_object("login_button_ok").set_flags(gtk.CAN_DEFAULT)
+        builder.get_object("login_button_ok").grab_default()
+
     def show(self):
         """
         displays the window
@@ -210,8 +213,105 @@ class LoginWindow(object):
         - widget
           widget that triggered the event
         """
-        print "Button OK"
-        self._ok_flag = True
+        password = self._entry_password.get_text()
+        if cryptstore.check_password(password):
+            cryptstore.set_password(password)
+            self._ok_flag = True
+            gtk.main_quit()
+        else:
+            md = gtk.MessageDialog(self._window, 
+                   gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, 
+                   gtk.BUTTONS_CLOSE, "Invalid password.")
+            md.run()
+            md.destroy()
+
+    def on_button_cancel_clicked(self, widget):
+        """
+        handles the event when the Cancel button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        gtk.main_quit()
+
+class NewPasswordWindow(object):
+    """
+    window to setup new password for cryptbox
+    """
+
+    def __init__(self):
+        """
+        creates a new instance
+        """
+        self._new_password = None
+        self._window = None
+        self._entry_new_password = None
+        self._entry_repeat_password = None
+        self.init_widgets()
+
+    def get_new_password(self):
+        """
+        Return:
+        - new password or None, if no new password has set up
+        """
+        return self._new_password
+
+    def init_widgets(self):
+        """
+        initializes the widgets
+        """
+        builder = gtk.Builder()
+        builder.add_from_file("cryptbox.glade")
+        self._window = builder.get_object("new_password_window")
+        self._entry_new_password = builder.get_object("entry_new_password")
+        self._entry_repeat_password = builder.get_object("entry_repeat_password")
+        dic = {"on_new_password_window_destroy" : self.on_config_window_destroy
+                , "on_button_ok_clicked" : self.on_button_ok_clicked
+                , "on_button_cancel_clicked" : self.on_button_cancel_clicked }
+        builder.connect_signals(dic)
+        builder.get_object("password_button_ok").set_flags(gtk.CAN_DEFAULT)
+        builder.get_object("password_button_ok").grab_default()
+
+    def show(self):
+        """
+        displays the window
+        """
+        self._window.show()
+
+
+    def on_config_window_destroy(self, widget):
+        """
+        handles the event to destroy the window
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        gtk.main_quit()
+
+    def on_button_ok_clicked(self, widget):
+        """
+        handles the event when the OK button is clicked
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        password = self._entry_new_password.get_text()
+        repeat = self._entry_repeat_password.get_text()
+        if password != repeat:
+            md = gtk.MessageDialog(self._window, 
+                   gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, 
+                   gtk.BUTTONS_CLOSE, "Entered passwords do not match.")
+            md.run()
+            md.destroy()
+            return
+        if len(password) < 6:
+            md = gtk.MessageDialog(self._window, 
+                   gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, 
+                   gtk.BUTTONS_CLOSE, "Password is too short.")
+            md.run()
+            md.destroy()
+            return
+        self._new_password = password
         gtk.main_quit()
 
     def on_button_cancel_clicked(self, widget):
@@ -221,7 +321,6 @@ class LoginWindow(object):
         - widget
           widget that triggered the event
         """
-        print "Button Cancel"
         gtk.main_quit()
 
 
@@ -248,6 +347,17 @@ def show_login_window(cryptstore):
     gtk.main()
     return window.is_ok()
 
+def show_new_password_window():
+    """
+    shows the window to set up a new password
+    Returns:
+    - new password or None
+    """
+    window = NewPasswordWindow()
+    window.show()
+    gtk.main()
+    return window.get_new_password()
+
 def show_error_message(message, exit=False):
     """
     displays an error message
@@ -265,5 +375,4 @@ def show_error_message(message, exit=False):
 
 if __name__ == "__main__":
     import cryptstore
-    cryptstore = cryptstore.CryptStore()
-    print show_login_window(cryptstore)
+    print show_new_password_window()
