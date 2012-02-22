@@ -17,8 +17,17 @@ class Uploader(object):
     class to process uploads to the CryptStore
     """
 
-    def __init__(self):
+    def __init__(self, cryptstore):
         """
         creates an instance
+        Parameters:
+        - cryptstore
+          CryptStore instance to use
         """
-        pass
+        self._cryptstore = cryptstore
+
+    def run(self):
+        """
+        executes the Uploader
+        """
+        print "Uoloader.run()"

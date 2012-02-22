@@ -22,6 +22,11 @@ import cryptboxgtk
 
 from threading import Thread
 
+from cryptboxgtk import *
+from cryptstore import *
+from downloader import *
+from uploader import *
+
 # Application constants
 CRYPTBOX_PORT = 5000
 CRYPTBOX_RUNNER_INTERVAL = 10
@@ -40,12 +45,18 @@ class Runner(object):
     class to run CryptBox synchronization
     """
 
-    def __init__(self):
+    def __init__(self, cryptstore):
         """
         creates an instance
+        Parameters:
+        - cryptstore
+          CryptStore instance to use
         """
         self._state = RUNNER_STATE_NOT_STARTED
         self._sleep_interval = CRYPTBOX_RUNNER_INTERVAL
+        self._cryptstore = cryptstore
+        self._uploader = Uploader(self._cryptstore)
+        self._downloader = Downloader(self._cryptstore)
 
     def is_running(self):
         """
@@ -67,15 +78,11 @@ class Runner(object):
         """
         self._state = RUNNER_STATE_RUNNING
         while self.is_running():
-            print "loop entered."
             if self._state == RUNNER_STATE_RUNNING:
-                print "RunnerThread running."
-                # TODO: start downloader
-                # TODO: start uploader
-            print "sleeping."
+                self._uploader.run()
+                self._downloader.run()
             time.sleep(self._sleep_interval)
-            print "wake up."
-        print "SyncThread stopped."
+        print "cryptbox syncronization stopped."
 
 class ListenerThread(Thread):
     """
@@ -111,17 +118,13 @@ class ListenerThread(Thread):
         """
         starts the thread
         """
-        print "DaemonListenerThread started."
         flag = True
         while flag:
-            print "Read socket"
             data, address = self._socket.recvfrom(256)
-            print "ListenerThread received: " + data
             if data == COMMAND_STOP:
                 self._runner.stop()
                 flag = False
             time.sleep(self._sleep_interval)
-        print "DaemonListenerThread stopped."
 
 class RunnerClient(object):
     """
@@ -175,10 +178,23 @@ def start():
     """
     starts the cryptbox daemon
     """
-    runner = Runner()
-    listener = ListenerThread(runner, CRYPTBOX_PORT)
-    listener.start()
-    runner.start()
+    flag = True
+    cryptstore = CryptStore()
+    if cryptstore.has_password():
+        flag = show_login_window(cryptstore)    
+    else:
+        password = show_new_password_window()
+        if password:
+            cryptstore.set_new_password(password)
+        else:
+            flag = False
+    if flag:
+        runner = Runner(cryptstore)
+        listener = ListenerThread(runner, CRYPTBOX_PORT)
+        listener.start()
+        runner.start()
+    else:
+        print "starting cryptbox aborted."
 
 def stop():
     """

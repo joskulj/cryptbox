@@ -214,9 +214,10 @@ class LoginWindow(object):
           widget that triggered the event
         """
         password = self._entry_password.get_text()
-        if cryptstore.check_password(password):
-            cryptstore.set_password(password)
+        if self._cryptstore.check_password(password):
+            self._cryptstore.set_password(password)
             self._ok_flag = True
+            self._window.destroy()
             gtk.main_quit()
         else:
             md = gtk.MessageDialog(self._window, 
