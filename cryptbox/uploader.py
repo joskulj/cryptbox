@@ -12,6 +12,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from fileinfo import *
+
 class Uploader(object):
     """
     class to process uploads to the CryptStore
@@ -30,4 +32,24 @@ class Uploader(object):
         """
         executes the Uploader
         """
-        print "Uoloader.run()"
+        self.check_for_delete()
+        self.check_for_upload()
+
+    def check_for_delete(self):
+        """
+        check if files should be deleted
+        """
+        database = FileInfoDatabase()
+        for fileinfo in database.get_all():
+            if not fileinfo.exists():
+                if fileinfo.get_state() != FILE_INFO_STATE_DELETED:
+                    filepath = fileinfo.get_relative_path()
+                    entry = self._cryptstore.get_entry(filepath)
+                    # TODO: compare time stamps
+                    self._cryptstore.delete_file(entry)
+
+    def check_for_upload(self):
+        """
+        check if files should be uploaded
+        """
+        pass

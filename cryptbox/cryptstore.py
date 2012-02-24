@@ -337,6 +337,20 @@ class CryptStore(object):
         except OSError:
             show_error_message("Unable to remove temporary file %s." % tempname)
 
+    def get_entry(self, filepath):
+        """
+        gets an entry by the path of the file
+        Parameters:
+        - filepath
+          path of a file
+        Returns:
+        - corresponding file entry
+        """
+        result = None
+        if filepath in self._entry_dict.keys():
+            result = self._entry_dict[filepath]
+        return result
+
     def get_entries(self):
         """
         Returns:

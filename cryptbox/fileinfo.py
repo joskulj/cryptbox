@@ -15,11 +15,41 @@
 import os.path
 import getpass
 
+from config import *
 from couchhelper import *
 
 FILEINFO_STATE_UPLOADED = "uploaded"
 FILEINFO_STATE_DOWNLOADED = "downloaded" 
 FILEINFO_STATE_DELETED = "deleted"
+
+class FileInfoDatabase(object):
+    """
+    class to access file state information
+    """
+
+    def __init__(self):
+        """
+        creates an instance
+        """
+        user = getpass.getuser()
+        database_name = "cryptbox-%s" % user
+        self._database = CouchDatabase(database_name)
+        config = CryptBoxConfig()
+        self._rootpath = config.get_source_directory()
+
+    def get_all(self):
+        """
+        gets all file state information
+        Returns:
+        - list of FileInfo instances
+        """
+        result = []
+        for doc_id in self._database.get_document_list():
+            doc = self._database.load_document(doc_id)
+            relpath = doc.get_value("relpath")
+            fileinfo = FileInfo(self._rootpath, relpath)
+            result.append(fileinfo)
+        return result
 
 class FileInfo(object):
     """
@@ -117,6 +147,7 @@ class FileInfo(object):
 
     def save_state(self):
         """
+        saves the state information
         """
         key = CouchKey([self._relpath])
         doc = self._database.load_document(key.get_key())
@@ -126,6 +157,16 @@ class FileInfo(object):
         doc.set_value("state", self._state)
         doc.set_value("state_timestamp", self._state_timestamp)
         self._database.save_document(doc)
+
+    def exists(self):
+        """
+        checks, if the file exists
+        Returns:
+        - True: file exists
+        - False: file does not exist
+        """
+        self.scan()
+        return (self._size != None)
 
     def get_relative_path(self):
         """
