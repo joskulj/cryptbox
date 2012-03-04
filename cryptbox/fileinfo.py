@@ -12,6 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import os
 import os.path
 import getpass
 
@@ -220,6 +221,26 @@ class FileInfo(object):
         - fils size
         """
         return self._size
+
+    def delete_file(self, timestamp):
+        """
+        deletes the corresponding file
+        Parameters:
+        - timestamp
+          timestamp for deleting file
+        Returns:
+        - True:  file was deleted
+        - False: deleting the file failed
+        """
+        flag = True
+        try:
+            path = self.get_absolute_path()
+            os.remove(path)
+        except OSError:
+            flag = False
+        if flag:
+            self.update_state(FILEINFO_STATE_DELETED, timestamp)
+        return flag
 
 class FileInfoList(object):
     """

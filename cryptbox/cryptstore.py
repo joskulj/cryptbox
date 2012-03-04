@@ -206,6 +206,29 @@ class CryptStoreEntry(object):
         """
         self._timestamp = timestamp
 
+    def delete_file(self, timestamp):
+        """
+        deletes the corresponding file
+        Parameters:
+        - timestamp
+          timestamp for deleting files
+        Returns:
+        - True:  file was deleted
+        - False: deleting file failed
+        """
+        flag = True
+        config = CryptBoxConfig()
+        rootpath = config.get_destination_directoy()
+        filepath = os.path.join(rootpath, self._filepath)
+        try:
+            os.remove(filepath)
+        except OSError:
+            flag = False
+        if flag:
+            self._timestamp = timestamp
+            self._state = FILEINFO_STATE_DELETED
+        return flag
+
 class CryptStore(object):
     """
     class to store encrypted files
@@ -241,7 +264,6 @@ class CryptStore(object):
             hash_file.close()
         except IOError:
             self._password_hash = None
-        pass
 
     def _save_password_hash(self):
         """
@@ -479,4 +501,13 @@ class CryptStore(object):
         fileinfo.update_state(state, timestamp)
 
     def delete_file(self, entry):
-        pass
+        """
+        deletes a file
+        Parameters:
+        - entry
+          entry that identifies the file to delete
+        """
+        flag = entry.delete_file()
+        if flag:
+            self._save_entries()
+
