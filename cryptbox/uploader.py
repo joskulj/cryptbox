@@ -12,6 +12,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from config import *
+from dirscanner import *
 from fileinfo import *
 
 class Uploader(object):
@@ -52,4 +54,16 @@ class Uploader(object):
         """
         check if files should be uploaded
         """
+        print "check_for_upload()"
+        config = CryptBoxConfig()
+        srcpath = config.get_source_directory()
+        scanner = DirScanner(srcpath)
+        for fileinfo in scanner.get_list().get_entries():
+            upload_flag = True
+            relpath = fileinfo.get_relative_path()
+            storeentry = self._cryptstore.get_entry(relpath)
+            if storeentry:
+                print "src timestamp: " + fileinfo.get_timestamp()
+                print "dest timestamp: " + storeentry.get_timestamp()
+            print relpath
         pass
