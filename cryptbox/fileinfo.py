@@ -130,7 +130,7 @@ class FileInfo(object):
         """
         path = self.get_absolute_path()
         if os.path.exists(path):
-            self._timestamp = os.path.getmtime(path)
+            self._file_timestamp = os.path.getmtime(path)
             self._size = os.path.getsize(path)
         else:
             self._timestamp = None

@@ -12,6 +12,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from config import *
+from fileinfo import *
+
 class Downloader(object):
     """
     class to process downloads from the CryptStore
@@ -25,9 +28,25 @@ class Downloader(object):
           CryptStore instance to use
         """
         self._cryptstore = cryptstore
+        config = CryptBoxConfig()
+        self._rootpath = config.get_source_directory()
 
     def run(self):
         """
         executes the Downloader
         """
+        for entry in self._cryptstore.get_entries():
+            relpath = entry.get_filepath()
+            entry_timestamp = entry.get_timestamp()
+            fileinfo = FileInfo(self._rootpath, relpath)
+            download_flag = True
+            if fileinfo.exists():
+                file_timestamp = fileinfo.get_file_timestamp()
+                if file_timestamp >= entry_timestamp:
+                    download_flag = False
+            if download_flag:
+                self._cryptstore.download_file(entry, self._rootpath)
+                print "%s downloaded." % relpath
+            # TODO: check for delete
+            
         print "Downloader.run()"

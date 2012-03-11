@@ -218,7 +218,7 @@ class CryptStoreEntry(object):
         """
         flag = True
         config = CryptBoxConfig()
-        rootpath = config.get_destination_directoy()
+        rootpath = config.get_destination_directory()
         filepath = os.path.join(rootpath, self._filepath)
         try:
             os.remove(filepath)
@@ -448,7 +448,7 @@ class CryptStore(object):
             show_error_message("No passwort set.", True)
         # set entry information
         filepath = fileinfo.get_relative_path()
-        timestamp = time.time()
+        timestamp = fileinfo.get_file_timestamp() 
         state = FILEINFO_STATE_UPLOADED
         # check, if entry already exists
         entry = None
@@ -507,7 +507,7 @@ class CryptStore(object):
         - entry
           entry that identifies the file to delete
         """
-        flag = entry.delete_file()
+        flag = entry.delete_file(time.time())
         if flag:
             self._save_entries()
 

@@ -43,12 +43,20 @@ class Uploader(object):
         """
         database = FileInfoDatabase()
         for fileinfo in database.get_all():
+            fileinfo.scan()
             if not fileinfo.exists():
-                if fileinfo.get_state() != FILE_INFO_STATE_DELETED:
+                if fileinfo.get_state() != FILEINFO_STATE_DELETED:
+                    delete_flag = True
                     filepath = fileinfo.get_relative_path()
+                    file_timestamp = fileinfo.get_state_timestamp()
                     entry = self._cryptstore.get_entry(filepath)
-                    # TODO: compare time stamps
-                    self._cryptstore.delete_file(entry)
+                    entry_timestamp = entry.get_timestamp()
+                    if entry.get_state() != FILEINFO_STATE_DELETED:
+                        if entry_timestamp > file_timestamp:
+                            delete_flag = False
+                    if delete_flag:
+                        self._cryptstore.delete_file(entry)
+                        print "%s deleted." % filepath
 
     def check_for_upload(self):
         """
@@ -59,11 +67,17 @@ class Uploader(object):
         srcpath = config.get_source_directory()
         scanner = DirScanner(srcpath)
         for fileinfo in scanner.get_list().get_entries():
-            upload_flag = True
+            upload_flag = False
+            fileinfo.scan()
             relpath = fileinfo.get_relative_path()
             storeentry = self._cryptstore.get_entry(relpath)
             if storeentry:
-                print "src timestamp: " + fileinfo.get_timestamp()
-                print "dest timestamp: " + storeentry.get_timestamp()
-            print relpath
-        pass
+                file_timestamp = fileinfo.get_file_timestamp()
+                store_timestamp = storeentry.get_timestamp()
+                if file_timestamp > store_timestamp:
+                    upload_flag = True
+            else:
+                upload_flag = True
+            if upload_flag:
+                self._cryptstore.upload_file(fileinfo)
+                print "%s uploadad." % relpath
