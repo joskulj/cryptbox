@@ -34,6 +34,7 @@ class Uploader(object):
         """
         executes the Uploader
         """
+        print "Uploader.run()"
         self.check_for_delete()
         self.check_for_upload()
 
@@ -54,6 +55,8 @@ class Uploader(object):
                     if entry.get_state() != FILEINFO_STATE_DELETED:
                         if entry_timestamp > file_timestamp:
                             delete_flag = False
+                    else:
+                        delete_flag = False
                     if delete_flag:
                         self._cryptstore.delete_file(entry)
                         print "%s deleted." % filepath
@@ -62,7 +65,6 @@ class Uploader(object):
         """
         check if files should be uploaded
         """
-        print "check_for_upload()"
         config = CryptBoxConfig()
         srcpath = config.get_source_directory()
         scanner = DirScanner(srcpath)

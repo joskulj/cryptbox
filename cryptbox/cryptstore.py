@@ -220,10 +220,11 @@ class CryptStoreEntry(object):
         config = CryptBoxConfig()
         rootpath = config.get_destination_directory()
         filepath = os.path.join(rootpath, self._filepath)
-        try:
-            os.remove(filepath)
-        except OSError:
-            flag = False
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except OSError:
+                flag = False
         if flag:
             self._timestamp = timestamp
             self._state = FILEINFO_STATE_DELETED
