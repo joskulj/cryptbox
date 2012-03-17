@@ -28,6 +28,8 @@ from tempfile import *
 from config import *
 from fileinfo import *
 
+from debug import *
+
 # helper functions for encryption and decryption
 
 def normalize_key(key):
@@ -256,15 +258,21 @@ class CryptStore(object):
         """
         loads the password hash
         """
+        debug("Enter CryptStore._load_password_hash()")
         destination = self._rootpath
+        debug_value("destination", destination)
         fname = "cryptbox.00000000"
+        debug_value("fname", fname)
         filepath = os.path.join(destination, fname)
+        debug_value("filepath", filepath)
         try:
             hash_file = open(filepath, "r")
             self._password_hash = hash_file.read()
             hash_file.close()
         except IOError:
+            debug_exception()
             self._password_hash = None
+        debug("Leave CryptStore._load_password_hash()")
 
     def _save_password_hash(self):
         """
