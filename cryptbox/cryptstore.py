@@ -254,6 +254,15 @@ class CryptStore(object):
         self._password_hash = None
         self._load_password_hash()
 
+    def refresh(self):
+        """
+        reloads the entries
+        """
+        self._entries = []
+        self._entry_dict = {}
+        self._max_id = 2
+        self._load_entries() 
+
     def _load_password_hash(self):
         """
         loads the password hash
@@ -292,6 +301,7 @@ class CryptStore(object):
         """
         loads the file entries
         """
+        debug("Enter CryptSore._load_entries()")
         # decrypt entries file to a temporary file
         key = self.get_key()
         fname = "cryptbox.00000001"
@@ -318,9 +328,13 @@ class CryptStore(object):
             self._entry_dict = {}
             for entry_dict in entry_list:
                 filepath = entry_dict["filepath"]
+                debug_value("filepath", filepath)
                 timestamp = entry_dict["timestamp"]
+                debug_value("timestamp", str(timestamp))
                 state = entry_dict["state"]
+                debug_value("state", state)
                 entry_id = entry_dict["entry_id"]
+                debug_value("entry_id", entry_id)
                 entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
                 self._entries.append(entry)
                 self._entry_dict[filepath] = entry
@@ -331,7 +345,8 @@ class CryptStore(object):
             os.remove(tempname)
         except OSError:
             show_error_message("Unable to remove temporary file %s." % tempname)
-
+        debug("Leave CryptSore._load_entries()")
+ 
     def _save_entries(self):
         """
         saves the file entries

@@ -79,6 +79,7 @@ class Runner(object):
         self._state = RUNNER_STATE_RUNNING
         while self.is_running():
             if self._state == RUNNER_STATE_RUNNING:
+                self._cryptstore.refresh()
                 self._uploader.run()
                 self._downloader.run()
             time.sleep(self._sleep_interval)
