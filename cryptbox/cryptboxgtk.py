@@ -12,6 +12,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import keyring
+import getpass
 import gtk
 import pygtk
 import sys
@@ -164,6 +166,7 @@ class LoginWindow(object):
         self._cryptstore = cryptstore
         self._window = None
         self._entry_password = None
+        self._check_keyring = None
         self.init_widgets()
 
     def is_ok(self):
@@ -183,6 +186,7 @@ class LoginWindow(object):
         builder.add_from_file("login.glade")
         self._window = builder.get_object("login_window")
         self._entry_password = builder.get_object("entry_password")
+        self._check_keyring = builder.get_object("check_keyring")
         dic = {"on_login_window_destroy" : self.on_config_window_destroy
                 , "on_button_ok_clicked" : self.on_button_ok_clicked
                 , "on_button_cancel_clicked" : self.on_button_cancel_clicked }
@@ -216,6 +220,9 @@ class LoginWindow(object):
         password = self._entry_password.get_text()
         if self._cryptstore.check_password(password):
             self._cryptstore.set_password(password)
+            if self._check_keyring.get_active():
+                user = getpass.getuser()
+                keyring.set_password("cryptbox", user, password)
             self._ok_flag = True
             self._window.destroy()
             gtk.main_quit()
@@ -343,10 +350,19 @@ def show_login_window(cryptstore):
     - True:  login was successful
     - False: login was not successful
     """
-    window = LoginWindow(cryptstore)
-    window.show()
-    gtk.main()
-    return window.is_ok()
+    result = False
+    user = getpass.getuser()
+    password = keyring.get_password("cryptbox", user)
+    if password:
+         if cryptstore.check_password(password):
+            cryptstore.set_password(password)
+            result = True
+    if not result:
+        window = LoginWindow(cryptstore)
+        window.show()
+        gtk.main()
+        result = window.is_ok()
+    return result
 
 def show_new_password_window():
     """
