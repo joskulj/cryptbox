@@ -39,7 +39,7 @@ class ConfigWindow(object):
         initializes the widgets
         """
         builder = gtk.Builder()
-        builder.add_from_file("cryptbox.glade")
+        builder.add_from_file("config.glade")
         self._window = builder.get_object("config_window")
         self._entry_source = builder.get_object("entry_source")
         self._entry_destination = builder.get_object("entry_destination")
@@ -180,7 +180,7 @@ class LoginWindow(object):
         initializes the widgets
         """
         builder = gtk.Builder()
-        builder.add_from_file("cryptbox.glade")
+        builder.add_from_file("login.glade")
         self._window = builder.get_object("login_window")
         self._entry_password = builder.get_object("entry_password")
         dic = {"on_login_window_destroy" : self.on_config_window_destroy
@@ -262,7 +262,7 @@ class NewPasswordWindow(object):
         initializes the widgets
         """
         builder = gtk.Builder()
-        builder.add_from_file("cryptbox.glade")
+        builder.add_from_file("password.glade")
         self._window = builder.get_object("new_password_window")
         self._entry_new_password = builder.get_object("entry_new_password")
         self._entry_repeat_password = builder.get_object("entry_repeat_password")
