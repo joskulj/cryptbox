@@ -339,7 +339,7 @@ class CryptStore(object):
                 debug_value("entry_id", entry_id)
                 entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
                 self._entries.append(entry)
-                self._entry_dict[filepath] = entry
+                self._entry_dict[unicode(filepath)] = entry
         else:
             show_error_message("Unable to parse temporary file %s." % tempname, True)
         # delete temporary file
@@ -479,7 +479,7 @@ class CryptStore(object):
         # check, if entry already exists
         entry = None
         if filepath in self._entry_dict.keys():
-            entry = self._entry_dict[filepath]
+            entry = self._entry_dict[unicode(filepath)]
             entry_id = entry.get_entry_id()
         else:
             entry_id = self._max_id
@@ -493,7 +493,7 @@ class CryptStore(object):
         if entry == None:
             entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
             self._entries.append(entry)
-            self._entry_dict[filepath] = entry
+            self._entry_dict[unicode(filepath)] = entry
         else:
             entry.set_timestamp(timestamp)
             entry.set_state(state)
