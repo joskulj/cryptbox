@@ -1,3 +1,5 @@
+# -*- coding: iso-8859-15 -*-
+
 # cryptbox - class to store encrypted files
 #
 # Copyright 2012 Jochen Skulj, jochen@jochenskulj.de
@@ -394,7 +396,7 @@ class CryptStore(object):
         """
         result = None
         if filepath in self._entry_dict.keys():
-            result = self._entry_dict[filepath]
+            result = self._entry_dict[unicode(filepath)]
         return result
 
     def get_entries(self):
