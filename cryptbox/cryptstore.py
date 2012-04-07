@@ -138,6 +138,29 @@ def decrypt_file(srcfilename, destfilename, key, chunksize=64*1024):
     srcfile.close()
     destfile.close()
 
+def create_path(filepath):
+    """
+    checks, if a given filepath exists, and creates the path
+    if it doesn't exists.
+    Parameters:
+    - filepath
+      filepath to check
+    Returns:
+    - filepath was successfully checked or created
+    """
+    result = True
+    dir_list = filepath.split("/")
+    test_path = ""
+    for index in range(0, len(dir_list) - 1):
+        test_path = os.path.join(test_path, dir_list[index])
+        if len(test_path):
+            if not os.path.exists(test_path):
+                try:
+                    os.mkdir(test_path)
+                except OSError:
+                    result = False
+    return result
+
 # STATE_UPLOADED = "u"
 # STATE_DELETED = "d"
 
@@ -519,6 +542,7 @@ class CryptStore(object):
         # create destination path
         destpath = os.path.join(rootpath, entry.get_filepath())
         # download the file
+        create_path(destpath)
         decrypt_file(srcpath, destpath, self.get_key())
         # update file info
         fileinfo = FileInfo(rootpath, destpath)
