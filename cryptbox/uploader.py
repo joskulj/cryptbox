@@ -13,6 +13,7 @@
 # GNU General Public License for more details.
 
 from config import *
+from cryptlog import *
 from dirscanner import *
 from fileinfo import *
 
@@ -34,7 +35,6 @@ class Uploader(object):
         """
         executes the Uploader
         """
-        print "Uploader.run()"
         self.check_for_delete()
         self.check_for_upload()
 
@@ -59,7 +59,7 @@ class Uploader(object):
                         delete_flag = False
                     if delete_flag:
                         self._cryptstore.delete_file(entry)
-                        print "%s deleted." % filepath
+                        cryptlog("%s deleted." % filepath)
 
     def check_for_upload(self):
         """
@@ -82,4 +82,4 @@ class Uploader(object):
                 upload_flag = True
             if upload_flag:
                 self._cryptstore.upload_file(fileinfo)
-                print "%s uploadad." % relpath
+                cryptlog("%s uploadad." % relpath)

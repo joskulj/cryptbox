@@ -49,7 +49,6 @@ class FileInfoDatabase(object):
             doc = self._database.load_document(doc_id)
             relpath = doc.get_value("relpath")
             fileinfo = FileInfo(self._rootpath, relpath)
-            print fileinfo.get_relative_path()
             result.append(fileinfo)
         return result
 

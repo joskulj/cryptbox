@@ -15,6 +15,7 @@
 import time
 
 from config import *
+from cryptlog import *
 from fileinfo import *
 
 class Downloader(object):
@@ -37,7 +38,6 @@ class Downloader(object):
         """
         executes the Downloader
         """
-        print "Downloader.run()"
         for entry in self._cryptstore.get_entries():
             relpath = entry.get_filepath()
             entry_timestamp = entry.get_timestamp()
@@ -50,7 +50,7 @@ class Downloader(object):
                         download_flag = False
                 if download_flag:
                     self._cryptstore.download_file(entry, self._rootpath)
-                    print "%s downloaded." % relpath
+                    cryptlog("%s downloaded." % relpath)
             else:
                 fileinfo.delete_file(time.time())
 

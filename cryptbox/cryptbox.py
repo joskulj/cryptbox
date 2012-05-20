@@ -24,6 +24,7 @@ import cryptboxgtk
 from threading import Thread
 
 from cryptboxgtk import *
+from cryptlog import *
 from cryptstore import *
 from downloader import *
 from uploader import *
@@ -40,6 +41,8 @@ RUNNER_STATE_STOPPING = 2
 
 # Commands to control the Runner Thread
 COMMAND_STOP = "stop"
+
+MAX_LOG_COUNTER = 50
 
 class Runner(object):
     """
@@ -77,14 +80,24 @@ class Runner(object):
         """
         starts the thread
         """
+        cryptlog("Syncronization started.")
         self._state = RUNNER_STATE_RUNNING
+        log_counter = MAX_LOG_COUNTER
         while self.is_running():
             if self._state == RUNNER_STATE_RUNNING:
+                cryptlog("Refreshing CryptStore ...")
                 self._cryptstore.refresh()
+                cryptlog("Running Uploader ...")
                 self._uploader.run()
+                cryptlog("Running Downloader ...")
                 self._downloader.run()
+                log_counter = log_counter - 1
+                if log_counter == 0:
+                    save_cryptlog()
+                    log_counter = MAX_LOG_COUNTER
             time.sleep(self._sleep_interval)
-        print "cryptbox syncronization stopped."
+        cryptlog("Syncronization stopped.")
+        save_cryptlog()
 
 class ListenerThread(Thread):
     """
