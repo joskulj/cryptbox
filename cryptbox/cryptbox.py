@@ -15,6 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import signal
 import socket
 import sys
 import time
@@ -61,6 +62,8 @@ class Runner(object):
         self._cryptstore = cryptstore
         self._uploader = Uploader(self._cryptstore)
         self._downloader = Downloader(self._cryptstore)
+        self._sleep_counter = 0
+        runner_instance = self
 
     def is_running(self):
         """
@@ -75,6 +78,7 @@ class Runner(object):
         signals the thread to stop
         """
         self._state = RUNNER_STATE_STOPPING
+        self._sleep_counter = 0
 
     def start(self):
         """
@@ -95,7 +99,10 @@ class Runner(object):
                 if log_counter == 0:
                     save_cryptlog()
                     log_counter = MAX_LOG_COUNTER
-            time.sleep(self._sleep_interval)
+            self._sleep_counter = self._sleep_interval
+            while self._sleep_counter > 0:
+                time.sleep(1)
+                self._sleep_counter = self._sleep_counter - 1
         cryptlog("Syncronization stopped.")
         save_cryptlog()
 
@@ -171,6 +178,19 @@ class RunnerClient(object):
         """
         self.send(COMMAND_STOP)
 
+def on_sigterm(sig, frame):
+    """
+    handles SIGTERM sinal
+    Parameters:
+    - sig
+      recieved signal
+    - frame
+      stack frame
+    """
+    cryptlog("SIGTERM/SIGINT recieved")
+    client = RunnerClient(CRYPTBOX_PORT)
+    client.stop()
+
 def print_usage():
     """
     prints the help text about using cryptbox
@@ -204,6 +224,8 @@ def start():
         else:
             flag = False
     if flag:
+        signal.signal(signal.SIGTERM, on_sigterm)
+        signal.signal(signal.SIGINT, on_sigterm)
         runner = Runner(cryptstore)
         listener = ListenerThread(runner, CRYPTBOX_PORT)
         listener.start()
