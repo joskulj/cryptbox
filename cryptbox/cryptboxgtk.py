@@ -15,10 +15,22 @@
 import keyring
 import getpass
 import gtk
+import inspect
 import pygtk
 import sys
+import os
 
 from config import *
+
+def get_glade_path(filename):
+    """
+    creates a file path for a glade file
+    Parameters:
+
+    Returns
+    """
+    apppath = os.path.dirname(inspect.getfile(inspect.currentframe())) 
+    return os.path.join(apppath, filename)
 
 class ConfigWindow(object):
     """
@@ -41,7 +53,8 @@ class ConfigWindow(object):
         initializes the widgets
         """
         builder = gtk.Builder()
-        builder.add_from_file("config.glade")
+        filepath = get_glade_path("config.glade")
+        builder.add_from_file(filepath)
         self._window = builder.get_object("config_window")
         self._entry_source = builder.get_object("entry_source")
         self._entry_destination = builder.get_object("entry_destination")
@@ -183,7 +196,8 @@ class LoginWindow(object):
         initializes the widgets
         """
         builder = gtk.Builder()
-        builder.add_from_file("login.glade")
+        filepath = get_glade_path("login.glade")
+        builder.add_from_file(filepath)
         self._window = builder.get_object("login_window")
         self._entry_password = builder.get_object("entry_password")
         self._check_keyring = builder.get_object("check_keyring")

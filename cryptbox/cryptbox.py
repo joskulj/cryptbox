@@ -195,7 +195,7 @@ def print_usage():
     """
     prints the help text about using cryptbox
     """
-    print "usage: cryptbox [OPTION]"
+    print "usage: %s [OPTION]" % sys.argv[0]
     print ""
     print "Use one of the following options:"
     print ""
@@ -240,7 +240,10 @@ def stop():
     client = RunnerClient(CRYPTBOX_PORT)
     client.stop()
 
-if __name__ == "__main__":
+def main():
+    """
+    main function
+    """
     if len(sys.argv) < 2:
         print_usage()
     else:
@@ -254,3 +257,5 @@ if __name__ == "__main__":
         else:
             print_usage()
 
+if __name__ == "__main__":
+    main()
