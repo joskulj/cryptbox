@@ -283,7 +283,8 @@ class NewPasswordWindow(object):
         initializes the widgets
         """
         builder = gtk.Builder()
-        builder.add_from_file("password.glade")
+        filepath = get_glade_path("password.glade")
+        builder.add_from_file(filepath)
         self._window = builder.get_object("new_password_window")
         self._entry_new_password = builder.get_object("entry_new_password")
         self._entry_repeat_password = builder.get_object("entry_repeat_password")
