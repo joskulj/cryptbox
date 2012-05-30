@@ -199,9 +199,30 @@ def print_usage():
     print ""
     print "Use one of the following options:"
     print ""
-    print "  --config   configure cryptbox"
-    print "  --start    start the cryptbox daemon"
-    print "  --stop     stop the cryptbox daemon"
+    print "  --config     configure cryptbox"
+    print "  --start      start the cryptbox daemon"
+    print "  --stop       stop the cryptbox daemon"
+    print "  --dest-list  lists information of the destination directory"
+
+def init_cryptstore():
+    """
+    creates an cryptstore instance
+    Returns:
+    - cryptstore instance or None if login failed
+    """
+    result = CryptStore()
+    if result.has_password():
+        flag = show_login_window(result)
+        if not flag:
+            result = None
+    else:
+        password = show_new_password_window()
+        if password:
+            result.set_new_password(password)
+        else:
+            result = None
+    return result
+ 
 
 def configure():
     """
@@ -213,17 +234,8 @@ def start():
     """
     starts the cryptbox daemon
     """
-    flag = True
-    cryptstore = CryptStore()
-    if cryptstore.has_password():
-        flag = show_login_window(cryptstore)    
-    else:
-        password = show_new_password_window()
-        if password:
-            cryptstore.set_new_password(password)
-        else:
-            flag = False
-    if flag:
+    cryptstore = init_cryptstore()
+    if cryptstore:
         signal.signal(signal.SIGTERM, on_sigterm)
         signal.signal(signal.SIGINT, on_sigterm)
         runner = Runner(cryptstore)
@@ -240,6 +252,24 @@ def stop():
     client = RunnerClient(CRYPTBOX_PORT)
     client.stop()
 
+def destination_list():
+    """
+    lists the meta information of the destination directory
+    """
+    cryptstore = init_cryptstore()
+    if cryptstore:
+        for entry in cryptstore.get_entries():
+            print "id: %s" % entry.get_entry_id()
+            print "filepath: %s" % entry.get_filepath()
+            print "state: %s" % entry.get_state()
+            float_timestamp = entry.get_timestamp()
+            struct_timestamp = time.localtime(float_timestamp)
+            str_timestamp = time.strftime("%c", struct_timestamp)
+            print "timestamp: %s" % str_timestamp
+            print ""
+    else:
+        print "Accessing cryptstore failed."
+
 def main():
     """
     main function
@@ -254,6 +284,8 @@ def main():
             start()
         elif option == "--stop":
             stop()
+        elif option == "--dest-list":
+                destination_list()
         else:
             print_usage()
 
