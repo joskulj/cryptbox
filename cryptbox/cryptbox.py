@@ -27,6 +27,8 @@ from threading import Thread
 from cryptboxgtk import *
 from cryptlog import *
 from cryptstore import *
+from config import *
+from dirscanner import *
 from downloader import *
 from uploader import *
 
@@ -202,6 +204,7 @@ def print_usage():
     print "  --config     configure cryptbox"
     print "  --start      start the cryptbox daemon"
     print "  --stop       stop the cryptbox daemon"
+    print "  --src-list   lists information of the source directory"
     print "  --dest-list  lists information of the destination directory"
 
 def init_cryptstore():
@@ -222,7 +225,21 @@ def init_cryptstore():
         else:
             result = None
     return result
- 
+
+def timestamp_string(timestamp_float):
+    """
+    converts a float timestamp into a string
+    Parameters:
+    - timestamp_float
+      float representation of a timestamp
+    Returns:
+    - string representation of the timestamp
+    """
+    result = "(none)"
+    if timestamp_float:
+        timestamp_struct = time.localtime(timestamp_float)
+        result = time.strftime("%c", timestamp_struct)
+    return result
 
 def configure():
     """
@@ -262,13 +279,28 @@ def destination_list():
             print "id: %s" % entry.get_entry_id()
             print "filepath: %s" % entry.get_filepath()
             print "state: %s" % entry.get_state()
-            float_timestamp = entry.get_timestamp()
-            struct_timestamp = time.localtime(float_timestamp)
-            str_timestamp = time.strftime("%c", struct_timestamp)
-            print "timestamp: %s" % str_timestamp
+            timestamp = timestamp_string(entry.get_timestamp()) 
+            print "timestamp: %s" % timestamp
             print ""
     else:
         print "Accessing cryptstore failed."
+
+def source_list():
+    """
+    lists the meta information of the source directory
+    """
+    config = CryptBoxConfig()
+    srcpath = config.get_source_directory()
+    scanner = DirScanner(srcpath)
+    fileinfolist = scanner.get_list()
+    for entry in fileinfolist.get_entries():
+        print "filepath: %s" % entry.get_relative_path()
+        timestamp = timestamp_string(entry.get_file_timestamp())
+        print "file timestamp: %s" % timestamp
+        print "state: %s" % entry.get_state()
+        timestamp = timestamp_string(entry.get_state_timestamp())
+        print "state timestamp: %s" % timestamp
+        print ""
 
 def main():
     """
@@ -285,7 +317,9 @@ def main():
         elif option == "--stop":
             stop()
         elif option == "--dest-list":
-                destination_list()
+            destination_list()
+        elif option == "--src-list":
+            source_list()
         else:
             print_usage()
 
