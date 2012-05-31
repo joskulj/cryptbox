@@ -204,8 +204,10 @@ def print_usage():
     print "  --config     configure cryptbox"
     print "  --start      start the cryptbox daemon"
     print "  --stop       stop the cryptbox daemon"
-    print "  --src-list   lists information of the source directory"
-    print "  --dest-list  lists information of the destination directory"
+    print "  --download   download files from the destination directory"
+    print "  --upload     upload files to the destination directory"
+    print "  --src-list   list information of the source directory"
+    print "  --dest-list  list information of the destination directory"
 
 def init_cryptstore():
     """
@@ -269,6 +271,30 @@ def stop():
     client = RunnerClient(CRYPTBOX_PORT)
     client.stop()
 
+def download():
+    """
+    downloads files from the destination directory
+    """
+    cryptstore = init_cryptstore()
+    set_cryptlog_verbose(True)
+    cryptlog("Download started.")
+    downloader = Downloader(cryptstore)
+    downloader.run()
+    cryptlog("Download finished.")
+    save_cryptlog()
+
+def upload():
+    """
+    uploads files to the destination directory
+    """
+    cryptstore = init_cryptstore()
+    set_cryptlog_verbose(True)
+    cryptlog("Upload started.")
+    uploader = Uploader(cryptstore)
+    uploader.run()
+    cryptlog("Upload finished.")
+    save_cryptlog()
+
 def destination_list():
     """
     lists the meta information of the destination directory
@@ -316,6 +342,10 @@ def main():
             start()
         elif option == "--stop":
             stop()
+        elif option == "--download":
+            download()
+        elif option == "--upload":
+            upload()
         elif option == "--dest-list":
             destination_list()
         elif option == "--src-list":

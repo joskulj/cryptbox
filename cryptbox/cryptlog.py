@@ -15,9 +15,14 @@
 import os.path
 import time
 
+# maximum number of log entries to store
 CRYPTLOG_MAX_LENGTH = 500
 
+# array to store log entries
 cryptlog_array = None
+
+# flag for verbose mode
+cryptlog_verbose = False
 
 def cryptlog(message):
     """
@@ -27,13 +32,27 @@ def cryptlog(message):
       message to log
     """
     global cryptlog_array
+    global cryptlog_verbose
     if cryptlog_array == None:
         load_cryptlog()
     timestamp = time.asctime(time.localtime())
     line = "%s: %s" % (timestamp, message)
     cryptlog_array.append(line)
+    if cryptlog_verbose:
+        print line
     if len(cryptlog_array) > CRYPTLOG_MAX_LENGTH:
         del cryptlog_array[0]
+
+def set_cryptlog_verbose(flag):
+    """
+    turns the verbose mode on or off
+    Parameters:
+    - flag
+      True:  turn verbose mode on
+      False: turn verbose mode off
+    """
+    global cryptlog_verbose
+    cryptlog_verbose = flag
 
 def get_cryptlog_path():
     """
