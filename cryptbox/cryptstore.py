@@ -76,6 +76,20 @@ def split_line(line, length):
         result.append(line[pos:])
     return result
 
+def adjust_time(srcfilename, destfilename):
+    """
+    sets atime and mtime of a destination file corresponding to a
+    source file
+    Parameters:
+    - srcfilename
+      name of the source file
+    - destfilename
+      name of the destination file
+    """
+    atime = os.path.getatime(srcfilename)
+    mtime = os.path.getmtime(srcfilename)
+    os.utime(destfilename, (atime, mtime))
+
 def encrypt_file(srcfilename, destfilename, key, chunksize=64*1024):
     """ 
     encrypts a file using AES with a given key
@@ -109,6 +123,7 @@ def encrypt_file(srcfilename, destfilename, key, chunksize=64*1024):
         destfile.write(encryptor.encrypt(chunk))
     srcfile.close()
     destfile.close()
+    adjust_time(srcfilename, destfilename)
 
 def decrypt_file(srcfilename, destfilename, key, chunksize=64*1024):
     """
@@ -137,6 +152,7 @@ def decrypt_file(srcfilename, destfilename, key, chunksize=64*1024):
     destfile.truncate(origsize)
     srcfile.close()
     destfile.close()
+    adjust_time(srcfilename, destfilename)
 
 def create_path(filepath):
     """
