@@ -1,6 +1,6 @@
 # cryptbox
 
-Version 0.1
+Version 0.2
 
 Jochen Skulj, jochen@jochenskulj.de
 
@@ -61,26 +61,57 @@ and install it:
 
 ## Usage
 
-To start *cryptbox* execute:
+You can use *cryptbox* in two different ways. You can either run
+*cryptbox* as a background task within your user session or you
+can upload and download files by executing seperate commands. If
+you run *cryptbox* as a background task *cryptbox* will syncronize the
+files in the source and destination directory each 10 seconds. Using
+the upload and download commands gives you more control when and
+how the files are synchronized. You may use these commands within
+your own shell scripts or cron jobs.
 
-    cryptbox-runner --start
+In each case of usage you have to setup *cryptbox* first.
 
-If you start *cryptbox* for the first time, you have to set up
+### Initial setup
+
+Within the setup you have to specify the *source directory* and
+the *destination directory*. To do this, please execute following
+command:
+
+    cryptbox-runner --config
+
+A GTK dialog will open that allows you to choose the *source
+directory* and the *destination directory*. The *source directory*
+is the place where you store the files you want to share. These
+files will be synchronized and encrypted to files in the
+*destination directory*. You should place the *destination directory*
+on a sharable resource like your Dropbox folder, a network drive
+or a removable device.
+
+### Password dialog
+
+If you use *cryptbox* for the first time, you have to set up
 a new password. A dialog opens that asks you to enter and
 repeat the new password. Please note that currently there is
 no option to change the password. This feature will be implemented
 in the future.
 
-After the password is set you have
-to enter the password each time *cryptbox* is started. You
+After the password is set you have to enter the password each 
+time *cryptbox* is started or a cryptbox command is executed. You
 have the option to store the password in your keyring, so you
 can start *cryptbox* without any user interaction.
 
-*cryptbbox* is designed to run as a background task. Therefore
+### Running cryptbox as a background task
+
+To start *cryptbox* execute:
+
+    cryptbox-runner --start
+
+This command is designed to run *cryptbox* as a background task. Therefore
 it is recommended tp set up *cryptbox* as a start up application
 using *gnome-session-properties*.
 
-While *cryptbox* is runnoing, *source* and *destination diretory* are
+While *cryptbox* is running, *source* and *destination diretory* are
 synchronized each 10 seconds. The actions performed by *cryptbox* are
 logged in
 
@@ -92,3 +123,25 @@ complete log file you should stop *cryptbox*.
 You can stop *cryptbox* with following command:
 
     cryptbox-runner --stop
+
+### Using the cryptbox commands
+
+The *cryptbox* synchronization consists of two steps: uploading file from
+the *source directory* to the *destination directory* and downloading
+files from the *destination directory* to the *source directory*
+
+You can perform these steps separate by executing the commands
+
+    cryptbox-runner --upload
+
+and
+
+    cryptbox-runner --download
+
+These commands can not performed if *cryptbox* is already running in the
+background. In this case a message text will be shown and you have to
+stop *cryptbox* first.
+
+When executing these commands the performed actions will be printed
+on stdout and also logged in the *cryptbox* log file.
+

@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name = "cryptbox",
-    version = "0.1",
+    version = "0.2",
     description = "Tool for synchronizing files supporting encryption",
     author = "Jochen Skulj",
     author_email = "jochen@jochenskulj.de",

@@ -15,6 +15,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import os
+import os.path
 import signal
 import socket
 import sys
@@ -22,6 +24,7 @@ import time
 
 import cryptboxgtk
 
+from subprocess import Popen, PIPE
 from threading import Thread
 
 from cryptboxgtk import *
@@ -45,12 +48,112 @@ RUNNER_STATE_STOPPING = 2
 # Commands to control the Runner Thread
 COMMAND_STOP = "stop"
 
+# Numbers of log entries to store before saving
 MAX_LOG_COUNTER = 50
+
+class PIDLock(object):
+    """
+    utility class to check if CryptBox is already running
+    """
+
+    def __init__(self):
+        """
+        creates an instance
+        """
+        self._filepath = os.path.expanduser("~/.cryptbox.pid")
+
+    def write(self):
+        """
+        writes a lock file
+        """
+        pid = os.getpid()
+        try:
+            pidfile = open(self._filepath, "w")
+            pidfile.write(str(pid))
+            pidfile.close()
+        except IOError:
+            print "Unable to write: %s" % self._filepath
+
+    def exists(self):
+        """
+        checks if the lock files exists
+        Returns:
+        - True:  lock file exists
+        - False: lock file does not exists
+        """
+        return os.path.exists(self._filepath)
+
+    def read(self):
+        """
+        reads the lock file
+        Returns:
+        - PID in the lock file or None
+        """
+        result = None
+        if self.exists():
+            try:
+                pidfile = open(self._filepath, "r")
+                line = pidfile.readline()
+                pidfile.close()
+                result = int(line)
+            except IOError:
+                print "Unable to read: %s" % self._filepath
+        return result
+
+    def delete(self):
+        """
+        deletes the lock file
+        """
+        try:
+            os.remove(self._filepath)
+        except OSError:
+            print "Unable to delete %s" % self._filepath
+
+    def is_process_running(self, pid):
+        """
+        checks if a process with a given pid is running
+        Parameters:
+        - pid
+          pid to check
+        Returns:
+        - True:  process is running
+        - False: process doesn't exists
+        """
+        result = False
+        process = Popen(['ps', '-eo' ,'pid,args'], stdout=PIPE, stderr=PIPE)
+        stdout, notused = process.communicate()
+        for line in stdout.splitlines():
+            pid_string = line.split(' ')[1]
+            try:
+                running_pid = int(pid_string)
+                if running_pid == pid:
+                    result = True
+                    break
+            except ValueError:
+                pass
+        return result
+
+    def check(self):
+        """
+        checks if CryptBox is running
+        Returns:
+        - True:  CryptBox is running
+        - False: CryptBox is not running
+        """
+        result = False
+        if self.exists():
+            pid = self.read()
+            if pid:
+                if self.is_process_running(pid):
+                    result = True
+                else:
+                    self.delete()
+        return result
 
 class Runner(object):
     """
     class to run CryptBox synchronization
-    """
+   """
 
     def __init__(self, cryptstore):
         """
@@ -87,6 +190,8 @@ class Runner(object):
         starts the thread
         """
         cryptlog("Syncronization started.")
+        lock = PIDLock()
+        lock.write()
         self._state = RUNNER_STATE_RUNNING
         log_counter = MAX_LOG_COUNTER
         while self.is_running():
@@ -106,6 +211,7 @@ class Runner(object):
                 time.sleep(1)
                 self._sleep_counter = self._sleep_counter - 1
         cryptlog("Syncronization stopped.")
+        lock.delete()
         save_cryptlog()
 
 class ListenerThread(Thread):
@@ -164,6 +270,7 @@ class RunnerClient(object):
         """
         self._port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket.connect(("localhost", self._port))
 
     def send(self, data):
         """
@@ -243,10 +350,22 @@ def timestamp_string(timestamp_float):
         result = time.strftime("%c", timestamp_struct)
     return result
 
+def check_lock():
+    """
+    checks if CryptBox process is running. If such a process is
+    running, the program will be stopped.
+    """
+    lock = PIDLock()
+    if lock.check():
+        print "CryptBox already running."
+        print "Unable to execute command."
+        sys.exit(0)
+
 def configure():
     """
     configure cryptbox
     """
+    check_lock()
     cryptboxgtk.show_config_window()
 
 def start():
@@ -275,6 +394,7 @@ def download():
     """
     downloads files from the destination directory
     """
+    check_lock()
     cryptstore = init_cryptstore()
     set_cryptlog_verbose(True)
     cryptlog("Download started.")
@@ -287,6 +407,7 @@ def upload():
     """
     uploads files to the destination directory
     """
+    check_lock()
     cryptstore = init_cryptstore()
     set_cryptlog_verbose(True)
     cryptlog("Upload started.")
