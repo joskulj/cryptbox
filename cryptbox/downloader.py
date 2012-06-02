@@ -46,7 +46,7 @@ class Downloader(object):
                 download_flag = True
                 if fileinfo.exists():
                     file_timestamp = fileinfo.get_file_timestamp()
-                    if file_timestamp >= entry_timestamp:
+                    if entry_timestamp - file_timestamp <= 1:
                         download_flag = False
                 if download_flag:
                     self._cryptstore.download_file(entry, self._rootpath)
