@@ -35,7 +35,7 @@ class Uploader(object):
         """
         executes the Uploader
         """
-        self.check_for_delete()
+        # self.check_for_delete()
         self.check_for_upload()
 
     def check_for_delete(self):
