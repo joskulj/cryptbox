@@ -37,7 +37,8 @@ from uploader import *
 
 # Application constants
 CRYPTBOX_PORT = 5000
-CRYPTBOX_RUNNER_INTERVAL = 10
+# interval for checking: 15 minutes
+CRYPTBOX_RUNNER_INTERVAL = 900
 CRYPTBOX_LISTENER_INTERVAL = 2
 
 # State of the Runner Thread

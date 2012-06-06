@@ -15,6 +15,7 @@
 from config import *
 from cryptlog import *
 from dirscanner import *
+from debug import *
 from fileinfo import *
 
 class Uploader(object):
@@ -31,17 +32,42 @@ class Uploader(object):
         """
         self._cryptstore = cryptstore
 
+    def _debug(self, action, entry, fileinfo):
+        """
+        logs debug information
+        Parameters:
+        - action
+          action to log
+        - entry
+          corresponding cryptstore entry
+        - fileinfo
+          corresponding file info
+        """
+        debuglog = DebugLogger("cryptbox", "Uploader")
+        debuglog.debug_value("fileinfo.relative_path", fileinfo.get_relative_path())
+        debuglog.debug_value("fileinfo.exist", fileinfo.exists())
+        debuglog.debug_value("fileinfo.file_timestamp", fileinfo.get_file_timestamp())
+        debuglog.debug_value("fileinfo.state_timestamp", fileinfo.get_state_timestamp())
+        if entry:
+            debuglog.debug_value("entry.state", entry.get_state())
+            debuglog.debug_value("entry.timestamp", entry.get_timestamp())
+        else:
+            debuglog.debug_value("entry", None)
+        debuglog.debug(action)
+
+ 
     def run(self):
         """
         executes the Uploader
         """
-        # self.check_for_delete()
+        self.check_for_delete()
         self.check_for_upload()
 
     def check_for_delete(self):
         """
         check if files should be deleted
         """
+        debuglog = DebugLogger("cryptbox", "Uploader.check_for_delete")
         database = FileInfoDatabase()
         for fileinfo in database.get_all():
             fileinfo.scan()
@@ -54,10 +80,10 @@ class Uploader(object):
                     entry_timestamp = entry.get_timestamp()
                     if entry.get_state() != FILEINFO_STATE_DELETED:
                         if entry_timestamp > file_timestamp:
+                            self._debug("file not deleted", entry, fileinfo)
                             delete_flag = False
-                    else:
-                        delete_flag = False
-                    if delete_flag:
+                    if delete_flag and entry.get_state() != FILEINFO_STATE_DELETED:
+                        self._debug("file deleted", entry, fileinfo)
                         self._cryptstore.delete_file(entry)
                         cryptlog("%s deleted." % filepath)
 
@@ -81,5 +107,8 @@ class Uploader(object):
             else:
                 upload_flag = True
             if upload_flag:
+                self._debug("file uploaded", storeentry, fileinfo)
                 self._cryptstore.upload_file(fileinfo)
                 cryptlog("%s uploadad." % relpath)
+            else:
+                self._debug("no action", storeentry, fileinfo)

@@ -15,6 +15,7 @@
 import os
 import os.path
 import sys
+import time
 
 from cStringIO import StringIO
 
@@ -145,3 +146,131 @@ def debug_value(label, value):
         else:
             stringio.write(" = (None)")
         log_line(stringio.getvalue())
+
+class DebugLogger(object):
+    """
+    class for logging debug information
+    """
+
+    def __init__(self, application, scope):
+        """
+        creates an instance
+        Parameters:
+        - application
+          name of the current application
+        - scope
+          scope of debugging
+        """
+        self._application = application
+        self._scope = scope
+        self._debug_flag = self.get_debug_flag()
+        self._debug_filename = self.get_debug_filename()
+        self._error_flag = False
+
+    def _open_log_file(self):
+        """
+        opens log file
+        Returns:
+        - opened log file or None
+        """
+        fd = None
+        try:
+            fd = open(self._debug_filename, "a")
+        except IOError:
+            if not self._error_flag:
+                self._error_flag = True
+                message = "Unable to open: %s\n" % self._debug_filename 
+                sys.stderr.write(message)
+            fd  = None
+        return fd
+
+    def _log_line(self, line, level=DEBUG_LEVEL_INFO):
+        """
+        logs a line
+        Parameters:
+        - line
+          line to log
+        - level
+          debug level to use
+        """
+        if self._debug_flag:
+            success = True
+            tstamp = time.asctime(time.localtime())
+            logline = "%s [%s] - %s: %s\n" % (tstamp, self._scope, level, line)
+            fd = self._open_log_file()
+            if fd != None:
+                try:
+                    fd.write(logline)
+                    fd.close()
+                    success = True
+                except:
+                    success = False
+            if success == False:
+                sys.stderr.write(line)
+
+    def get_debug_flag(self):
+        """
+        determines if debugging is switched on
+        Returns:
+        - True:  debugging switched on
+        - False: debugging switched off
+        """
+        result = False
+        for arg in sys.argv:
+            if arg == "--debug":
+                result = True
+        return result
+
+    def get_debug_filename(self):
+        """
+        Returns:
+        - filename of the debug file
+        """
+        path = os.path.expanduser("~")
+        return "".join([path, "/.", self._application, ".debug"])
+
+    def debug(self, line):
+        """
+        debugs a line
+        Parameters:
+        - line
+          line to debug
+        """
+        self._log_line(line, DEBUG_LEVEL_INFO)
+
+    def debug_error(self, line):
+        """
+        debugs a line at error level
+        Parameters:
+        - line
+          line to debug
+        """
+        self._log_line(line, DEBUG_LEVEL_ERROR)
+
+    def debug_exception(self):
+        """
+        debugs the current exception
+        """
+        if self._debug_flag:
+            line = sys.exc_type, ":", sys.exc_value
+            self._log_line(line, DEBUG_LEVEL_ERROR)
+
+    def debug_value(self, label, value):
+        """
+        debugs a value
+        - label
+          label for a value
+        - value
+          value to log
+        """
+        if self._debug_flag:
+            stringio = StringIO()
+            stringio.write(label)
+            if value:
+                stringio.write(" = ")
+                stringio.write(str(value))
+            else:
+                stringio.write(" = (None)")
+            self._log_line(stringio.getvalue())
+
+
