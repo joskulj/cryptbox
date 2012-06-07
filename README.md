@@ -1,6 +1,6 @@
 # cryptbox
 
-Version 0.2
+Version 0.3
 
 Jochen Skulj, jochen@jochenskulj.de
 
@@ -112,7 +112,7 @@ it is recommended tp set up *cryptbox* as a start up application
 using *gnome-session-properties*.
 
 While *cryptbox* is running, *source* and *destination diretory* are
-synchronized each 10 seconds. The actions performed by *cryptbox* are
+synchronized each 15 minutes. The actions performed by *cryptbox* are
 logged in
 
     ~/.cryptbox.log
@@ -144,4 +144,35 @@ stop *cryptbox* first.
 
 When executing these commands the performed actions will be printed
 on stdout and also logged in the *cryptbox* log file.
+
+### Additional options
+
+Besides the primary commands the are some utility options. Some of them
+requires the *cryptbox* task to be stopped. Following utility options are
+implemented:
+
+    cryptbox-runner --src-list
+
+This option prints out the meta information of the files in the 
+*source directory*.
+
+    cryptbox-runner --dest-list
+
+This options prints out the meta information of the files in the
+*destination directory*.
+
+    cryptbox-runner --purge
+
+This option deletes all files in the *destination directory* that are
+marked as deletes. This is useful to save filespace. It requires to stop
+*cryptbox* first.
+
+### Debugging options
+
+Additional to all options described above you can use the --debug option.
+This options logs debug information that are more detailed than the
+standard log information. The debug information will be saved in a
+separate debug file:
+
+    ~/.cryptbox.debug
 

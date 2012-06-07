@@ -314,6 +314,7 @@ def print_usage():
     print "  --stop       stop the cryptbox daemon"
     print "  --download   download files from the destination directory"
     print "  --upload     upload files to the destination directory"
+    print "  --purge      purge deleted files from destination directory"
     print "  --src-list   list information of the source directory"
     print "  --dest-list  list information of the destination directory"
 
@@ -450,6 +451,20 @@ def source_list():
         print "state timestamp: %s" % timestamp
         print ""
 
+def purge():
+    """
+    purge files that were deleted
+    """
+    check_lock()
+    cryptstore = init_cryptstore()
+    set_cryptlog_verbose(True)
+    pathlist = cryptstore.purge()
+    if len(pathlist) == 0:
+        cryptlog("no files purged.")
+    else:
+        for path in pathlist:
+            cryptlog("%s purged." % path)
+
 def main():
     """
     main function
@@ -472,6 +487,8 @@ def main():
             destination_list()
         elif option == "--src-list":
             source_list()
+        elif option == "--purge":
+            purge()
         else:
             print_usage()
 

@@ -567,3 +567,37 @@ class CryptStore(object):
         if flag:
             self._save_entries()
 
+    def purge(self):
+        """
+        deletes all files that are marked as deleted
+        Returns:
+        - list of filepath that were purged
+        """
+        result = []
+        index = 0
+        while index < len(self._entries):
+            entry = self._entries[index]
+            if entry.get_state() == FILEINFO_STATE_DELETED: 
+                entry_path = entry.get_filepath()
+                success = True
+                # create full file path
+                entry_id = entry.get_entry_id()
+                filename = "cryptbox.%08i" % entry_id
+                filepath = os.path.join(self._rootpath, filename)
+                # delete file
+                try:
+                    os.remove(filepath)
+                except OSError:
+                    show_error_message("Unable to delete %s." % filepath)
+                    success = False
+                if success:
+                    # remove meta infomation
+                    del self._entries[index]
+                    del self._entry_dict[unicode(entry_path)]
+                    result.append(entry_path)
+            else:
+                index += 1
+        if len(result) > 0:
+            self._save_entries()
+        return result
+

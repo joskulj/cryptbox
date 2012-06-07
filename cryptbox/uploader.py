@@ -77,15 +77,16 @@ class Uploader(object):
                     filepath = fileinfo.get_relative_path()
                     file_timestamp = fileinfo.get_state_timestamp()
                     entry = self._cryptstore.get_entry(filepath)
-                    entry_timestamp = entry.get_timestamp()
-                    if entry.get_state() != FILEINFO_STATE_DELETED:
-                        if entry_timestamp > file_timestamp:
-                            self._debug("file not deleted", entry, fileinfo)
-                            delete_flag = False
-                    if delete_flag and entry.get_state() != FILEINFO_STATE_DELETED:
-                        self._debug("file deleted", entry, fileinfo)
-                        self._cryptstore.delete_file(entry)
-                        cryptlog("%s deleted." % filepath)
+                    if entry:
+                        entry_timestamp = entry.get_timestamp()
+                        if entry.get_state() != FILEINFO_STATE_DELETED:
+                            if entry_timestamp > file_timestamp:
+                                self._debug("file not deleted", entry, fileinfo)
+                                delete_flag = False
+                        if delete_flag and entry.get_state() != FILEINFO_STATE_DELETED:
+                            self._debug("file deleted", entry, fileinfo)
+                            self._cryptstore.delete_file(entry)
+                            cryptlog("%s deleted." % filepath)
 
     def check_for_upload(self):
         """
