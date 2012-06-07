@@ -308,21 +308,15 @@ class CryptStore(object):
         """
         loads the password hash
         """
-        debug("Enter CryptStore._load_password_hash()")
         destination = self._rootpath
-        debug_value("destination", destination)
         fname = "cryptbox.00000000"
-        debug_value("fname", fname)
         filepath = os.path.join(destination, fname)
-        debug_value("filepath", filepath)
         try:
             hash_file = open(filepath, "r")
             self._password_hash = hash_file.read()
             hash_file.close()
         except IOError:
-            debug_exception()
             self._password_hash = None
-        debug("Leave CryptStore._load_password_hash()")
 
     def _save_password_hash(self):
         """
@@ -342,7 +336,6 @@ class CryptStore(object):
         """
         loads the file entries
         """
-        debug("Enter CryptSore._load_entries()")
         # decrypt entries file to a temporary file
         key = self.get_key()
         fname = "cryptbox.00000001"
@@ -369,13 +362,9 @@ class CryptStore(object):
             self._entry_dict = {}
             for entry_dict in entry_list:
                 filepath = entry_dict["filepath"]
-                debug_value("filepath", filepath)
                 timestamp = entry_dict["timestamp"]
-                debug_value("timestamp", str(timestamp))
                 state = entry_dict["state"]
-                debug_value("state", state)
                 entry_id = entry_dict["entry_id"]
-                debug_value("entry_id", entry_id)
                 entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
                 self._entries.append(entry)
                 self._entry_dict[unicode(filepath)] = entry
@@ -386,7 +375,6 @@ class CryptStore(object):
             os.remove(tempname)
         except OSError:
             show_error_message("Unable to remove temporary file %s." % tempname)
-        debug("Leave CryptSore._load_entries()")
  
     def _save_entries(self):
         """
