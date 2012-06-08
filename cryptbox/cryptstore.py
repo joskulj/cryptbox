@@ -293,6 +293,7 @@ class CryptStore(object):
         self._max_id = 2
         self._password = None
         self._password_hash = None
+        self._password_timestamp = None
         self._load_password_hash()
 
     def refresh(self):
@@ -317,6 +318,11 @@ class CryptStore(object):
             hash_file.close()
         except IOError:
             self._password_hash = None
+        if self._password_hash:
+            try:
+                self._password_timestamp = os.path.getmtime(filepath)
+            except:
+                self._password_timestamp = None
 
     def _save_password_hash(self):
         """
@@ -454,6 +460,26 @@ class CryptStore(object):
             m = hashlib.sha512()
             m.update(password)
             result = self._password_hash == m.hexdigest()
+        return result
+
+    def check_password_timestamp(self):
+        """
+        checks if the password was changed since the password was
+        loaded
+        Returns:
+        - True:  existing password is still valid
+        - False: password was changed
+        """
+        result = True
+        destination = self._rootpath
+        fname = "cryptbox.00000000"
+        filepath = os.path.join(destination, fname)
+        try:
+            timestamp = os.path.getmtime(filepath)
+            if timestamp > self._password_timestamp:
+                result = False
+        except:
+            result = False
         return result
 
     def set_new_password(self, password):

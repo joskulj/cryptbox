@@ -153,7 +153,8 @@ class PIDLock(object):
 
 class Runner(object):
     """
-    class to run CryptBox synchronization
+    class to run CryptBox synch
+    ronization
    """
 
     def __init__(self, cryptstore):
@@ -197,12 +198,18 @@ class Runner(object):
         log_counter = MAX_LOG_COUNTER
         while self.is_running():
             if self._state == RUNNER_STATE_RUNNING:
-                cryptlog("Refreshing CryptStore ...")
-                self._cryptstore.refresh()
-                cryptlog("Running Uploader ...")
-                self._uploader.run()
-                cryptlog("Running Downloader ...")
-                self._downloader.run()
+                cryptlog("Checking password timestamp ...")
+                if not self._cryptstore.check_password_timestamp():
+                    cryptlog("Password seemed to be changed.")
+                    client = RunnerClient(CRYPTBOX_PORT)
+                    client.stop()
+                else:
+                    cryptlog("Refreshing CryptStore ...")
+                    self._cryptstore.refresh()
+                    cryptlog("Running Uploader ...")
+                    self._uploader.run()
+                    cryptlog("Running Downloader ...")
+                    self._downloader.run()
                 log_counter = log_counter - 1
                 if log_counter == 0:
                     save_cryptlog()
