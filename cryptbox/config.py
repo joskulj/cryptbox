@@ -25,6 +25,8 @@ class CryptBoxConfig(object):
         """
         self._source_directory = None
         self._destination_directory = None
+        self._password_salt = None
+        self._password_repeat_hash = 0
         if self.exists():
             self.load()
 
@@ -62,6 +64,24 @@ class CryptBoxConfig(object):
         """
         self._destination_directory = directory
 
+    def set_password_salt(self, salt):
+        """
+        sets salt value for password hash
+        Parameters:
+        - salt
+          salt value for password hash
+        """
+        self._password_salt = salt
+
+    def set_password_repeat_hash(self, repeat_hash):
+        """
+        sets the value for repeating pashword hashing
+        Parameters:
+        - repeat_hash
+          value for repeating password hashing
+        """
+        self._password_repeat_hash = repeat_hash
+
     def get_source_directory(self):
         """
         Returns:
@@ -72,10 +92,25 @@ class CryptBoxConfig(object):
     def get_destination_directory(self):
         """
         Returns:
-        -  the destination directory
+        - the destination directory
         """
         return self._destination_directory
 
+    def get_password_salt(self):
+        """
+        Returns:
+        - salt value for password hash
+        """
+        return self._password_salt
+
+    def get_password_repeat_hash(self):
+        """
+        Returns:
+        - value for repeating password hashing
+        """
+        self._password_repeat_hash = repeat_hash
+
+ 
     def load(self):
         """
         loads the config file
@@ -96,6 +131,14 @@ class CryptBoxConfig(object):
                         self._source_directory = value
                     elif key == "destination":
                         self._destination_directory = value
+                    elif key == "password_salt":
+                        self._password_salt = value
+                    elif key == "password_repeat_hash":
+                        try:
+                            self._password_repeat_hash = int(value)
+                        except ValueError:
+                            self._password_repeat_hash = 0
+                            print "Invalid Repeat Hash value %s." % value
                     else:
                         print "Invalid configuration key %s was ignored." % key
             config_file.close()
@@ -119,6 +162,9 @@ class CryptBoxConfig(object):
                 config_file.write("source = %s\n" % self._source_directory)
             if self._destination_directory:
                 config_file.write("destination = %s\n" % self._destination_directory)
+            if self._password_salt:
+                config_file.write("password_salt = %s\n" % self._password_salt)
+            config_file.write("password_repeat_hash = %s\n" % str(self._password_repeat_hash))
             config_file.close()
         except IOError:
             result = False
