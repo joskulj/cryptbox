@@ -108,8 +108,7 @@ class CryptBoxConfig(object):
         Returns:
         - value for repeating password hashing
         """
-        self._password_repeat_hash = repeat_hash
-
+        return self._password_repeat_hash
  
     def load(self):
         """

@@ -381,6 +381,31 @@ class CryptStore(object):
             os.remove(tempname)
         except OSError:
             show_error_message("Unable to remove temporary file %s." % tempname)
+
+    def _get_password_hash(self, password):
+        """
+        computes a hash for a given password
+        Parameters:
+        - password
+        Returns:
+        - hash of the password
+        """
+        result = None
+        m1 = hashlib.sha512()
+        salt = self._config.get_password_salt()
+        if salt != None:
+            m1.update(password + salt)
+        else:
+            m1.update(password)
+        result = m1.hexdigest()
+        repeat_index = 0
+        repeat_max = self._config.get_password_repeat_hash()
+        while repeat_index < repeat_max:
+            m2 = hashlib.sha512()
+            m2.update(result)
+            result = m2.hexdigest()
+            repeat_index += 1
+        return result
  
     def _save_entries(self):
         """
@@ -457,9 +482,8 @@ class CryptStore(object):
         """
         result = False
         if self.has_password():
-            m = hashlib.sha512()
-            m.update(password)
-            result = self._password_hash == m.hexdigest()
+            if self._get_password_hash(password) == self._password_hash:
+                result = True
         return result
 
     def check_password_timestamp(self):
@@ -490,9 +514,7 @@ class CryptStore(object):
           new password to set
         """
         self._password = password
-        m = hashlib.sha512()
-        m.update(password)
-        self._password_hash = m.hexdigest()
+        self._password_hash = self._get_password_hash(self._password)
         self._save_password_hash()
         self._load_entries()
 
