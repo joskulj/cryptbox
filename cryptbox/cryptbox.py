@@ -419,7 +419,7 @@ def new_password():
     if password:
         # Change the password
         cryptstore = CryptStore()
-        cryptstore.set_new_password(password)
+        cryptstore.set_new_password(password, False)
         # Upload all local files with new password
         config = CryptBoxConfig()
         srcpath = config.get_source_directory()

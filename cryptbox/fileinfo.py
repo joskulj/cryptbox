@@ -121,7 +121,8 @@ class FileInfo(object):
         if self.exists():
             filepath = self.get_absolute_path()
             os.utime(filepath, (timestamp, timestamp))
-            self._state_timestamp = timestamp
+            self._state_timestamp = os.path.getmtime(filepath)
+            self._file_timestamp = os.path.getmtime(filepath)
             self.save_state()
 
     def update_state(self, state, state_timestamp):

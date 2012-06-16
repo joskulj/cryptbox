@@ -362,25 +362,21 @@ class CryptStore(object):
         # parse JSON content
         try:
             store_dict = json.loads(line)
+            if type(store_dict) == dict:
+                self._max_id = store_dict["max_id"]
+                entry_list = store_dict["entries"]
+                self._entries = []
+                self._entry_dict = {}
+                for entry_dict in entry_list:
+                    filepath = entry_dict["filepath"]
+                    timestamp = entry_dict["timestamp"]
+                    state = entry_dict["state"]
+                    entry_id = entry_dict["entry_id"]
+                    entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
+                    self._entries.append(entry)
+                    self._entry_dict[unicode(filepath)] = entry
         except ValueError:
-            store_dict = { }
-            store_dict["max_id"] = 0
-            store_dict["entries"] = []
-        if type(store_dict) == dict:
-            self._max_id = store_dict["max_id"]
-            entry_list = store_dict["entries"]
-            self._entries = []
-            self._entry_dict = {}
-            for entry_dict in entry_list:
-                filepath = entry_dict["filepath"]
-                timestamp = entry_dict["timestamp"]
-                state = entry_dict["state"]
-                entry_id = entry_dict["entry_id"]
-                entry = CryptStoreEntry(filepath, timestamp, state, entry_id)
-                self._entries.append(entry)
-                self._entry_dict[unicode(filepath)] = entry
-        else:
-            show_error_message("Unable to parse temporary file %s." % tempname, True)
+            show_error_message("Unable to parse entry file.", False)
         # delete temporary file
         try:
             os.remove(tempname)
@@ -511,17 +507,20 @@ class CryptStore(object):
             result = False
         return result
 
-    def set_new_password(self, password):
+    def set_new_password(self, password, load_entries=True):
         """
         sets a new password for the cryptstore
         Parameters:
         - password 
           new password to set
+        - load_entries
+          flag, if entries should be loaded
         """
         self._password = password
         self._password_hash = self._get_password_hash(self._password)
         self._save_password_hash()
-        self._load_entries()
+        if load_entries:
+            self._load_entries()
 
     def get_key(self):
         """
