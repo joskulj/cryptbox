@@ -111,6 +111,19 @@ class FileInfo(object):
         """
         self._relpath = relpath
 
+    def set_timestamp(self, timestamp):
+        """
+        sets the timestamp of the file
+        Parameters:
+        - timestamp
+          timestamp to set
+        """
+        if self.exists():
+            filepath = self.get_absolute_path()
+            os.utime(filepath, (timestamp, timestamp))
+            self._state_timestamp = timestamp
+            self.save_state()
+
     def update_state(self, state, state_timestamp):
         """
         sets the state and the corresponding timestamp

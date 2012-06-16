@@ -360,7 +360,12 @@ class CryptStore(object):
         except IOError:
             show_error_message("Unable to read temporary file %s." % tempname, True)
         # parse JSON content
-        store_dict = json.loads(line)
+        try:
+            store_dict = json.loads(line)
+        except ValueError:
+            store_dict = { }
+            store_dict["max_id"] = 0
+            store_dict["entries"] = []
         if type(store_dict) == dict:
             self._max_id = store_dict["max_id"]
             entry_list = store_dict["entries"]

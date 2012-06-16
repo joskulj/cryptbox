@@ -33,6 +33,7 @@ from cryptstore import *
 from config import *
 from dirscanner import *
 from downloader import *
+from fileinfo import *
 from uploader import *
 
 # Application constants
@@ -316,14 +317,15 @@ def print_usage():
     print ""
     print "Use one of the following options:"
     print ""
-    print "  --config     configure cryptbox"
-    print "  --start      start the cryptbox daemon"
-    print "  --stop       stop the cryptbox daemon"
-    print "  --download   download files from the destination directory"
-    print "  --upload     upload files to the destination directory"
-    print "  --purge      purge deleted files from destination directory"
-    print "  --src-list   list information of the source directory"
-    print "  --dest-list  list information of the destination directory"
+    print "  --config        configure cryptbox"
+    print "  --start         start the cryptbox daemon"
+    print "  --stop          stop the cryptbox daemon"
+    print "  --new-password  changes the password"
+    print "  --download      download files from the destination directory"
+    print "  --upload        upload files to the destination directory"
+    print "  --purge         purge deleted files from destination directory"
+    print "  --src-list      list information of the source directory"
+    print "  --dest-list     list information of the destination directory"
 
 def init_cryptstore():
     """
@@ -398,6 +400,42 @@ def stop():
     """
     client = RunnerClient(CRYPTBOX_PORT)
     client.stop()
+
+def new_password():
+    """
+    sets up a new password
+    """
+    check_lock()
+    cryptstore = init_cryptstore()
+    set_cryptlog_verbose(True)
+    cryptlog("Changing password ...")
+    # Update the local files
+    if cryptstore:
+        uploader = Uploader(cryptstore)
+        uploader.run()
+        downloader = Downloader(cryptstore)
+        downloader.run()
+    password = show_new_password_window()
+    if password:
+        # Change the password
+        cryptstore = CryptStore()
+        cryptstore.set_new_password(password)
+        # Upload all local files with new password
+        config = CryptBoxConfig()
+        srcpath = config.get_source_directory()
+        scanner = DirScanner(srcpath)
+        timestamp = time.time()
+        for fileinfo in scanner.get_list().get_entries():
+            fileinfo.scan()
+            if fileinfo.exists():
+                fileinfo.set_timestamp(timestamp)    
+                relpath = fileinfo.get_relative_path()
+                cryptstore.upload_file(fileinfo)
+                cryptlog("%s uploaded." % relpath)
+        cryptlog("Changing password completed.")
+    else:
+        cryptlog("Changing password canceled.")
+    save_cryptlog()
 
 def download():
     """
@@ -486,6 +524,8 @@ def main():
             start()
         elif option == "--stop":
             stop()
+        elif option == "--new-password":
+            new_password()
         elif option == "--download":
             download()
         elif option == "--upload":

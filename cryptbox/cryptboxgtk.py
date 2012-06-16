@@ -265,10 +265,13 @@ class NewPasswordWindow(object):
         """
         creates a new instance
         """
+        self._config = CryptBoxConfig()
         self._new_password = None
         self._window = None
         self._entry_new_password = None
         self._entry_repeat_password = None
+        self._entry_password_salt = None
+        self._spinbutton_hash_count = None
         self.init_widgets()
 
     def get_new_password(self):
@@ -285,15 +288,27 @@ class NewPasswordWindow(object):
         builder = gtk.Builder()
         filepath = get_glade_path("password.glade")
         builder.add_from_file(filepath)
+        # Create widgets
         self._window = builder.get_object("new_password_window")
         self._entry_new_password = builder.get_object("entry_new_password")
         self._entry_repeat_password = builder.get_object("entry_repeat_password")
+        self._entry_password_salt = builder.get_object("entry_password_salt")
+        self._spinbutton_hash_count = builder.get_object("spinbutton_hash_count")
+        # Connect events
         dic = {"on_new_password_window_destroy" : self.on_config_window_destroy
                 , "on_button_ok_clicked" : self.on_button_ok_clicked
                 , "on_button_cancel_clicked" : self.on_button_cancel_clicked }
         builder.connect_signals(dic)
+        # Set widget properties
+        self._spinbutton_hash_count.set_range(0, 99999)
         builder.get_object("password_button_ok").set_flags(gtk.CAN_DEFAULT)
         builder.get_object("password_button_ok").grab_default()
+        # Set widget values
+        salt = self._config.get_password_salt()
+        if salt:
+            self._entry_password_salt.set_text(salt)
+        hash_count = self._config.get_password_repeat_hash()
+        self._spinbutton_hash_count.set_value(hash_count)
 
     def show(self):
         """
@@ -335,6 +350,14 @@ class NewPasswordWindow(object):
             md.destroy()
             return
         self._new_password = password
+        salt = self._entry_password_salt.get_text()
+        if len(salt) > 0:
+            self._config.set_password_salt(salt)
+        else:
+            self._config.set_password_salt(None)
+        hash_count = self._spinbutton_hash_count.get_value_as_int()
+        self._config.set_password_repeat_hash(hash_count)
+        self._config.save()
         gtk.main_quit()
 
     def on_button_cancel_clicked(self, widget):
