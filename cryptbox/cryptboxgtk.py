@@ -46,31 +46,43 @@ class ConfigWindow(object):
         self._window = None
         self._entry_source = None
         self._entry_destination = None
+        self._entry_password_salt = None
+        self._spinbutton_hash_count = None
         self.init_widgets()
 
     def init_widgets(self):
         """
         initializes the widgets
         """
+        # Create widgets
         builder = gtk.Builder()
         filepath = get_glade_path("config.glade")
         builder.add_from_file(filepath)
         self._window = builder.get_object("config_window")
         self._entry_source = builder.get_object("entry_source")
         self._entry_destination = builder.get_object("entry_destination")
+        self._entry_password_salt = builder.get_object("entry_password_salt")
+        self._spinbutton_hash_count = builder.get_object("spinbutton_hash_count")
         self._window.show()
+        # Connect events
         dic = {"on_config_window_destroy" : self.on_config_window_destroy
                 , "on_button_source_clicked" : self.on_button_source_clicked
                 , "on_button_destination_clicked" : self.on_button_destination_clicked
                 , "on_button_ok_clicked" : self.on_button_ok_clicked
                 , "on_button_cancel_clicked" : self.on_button_cancel_clicked }
         builder.connect_signals(dic)
+        # Set widget values
         if self._config.exists():
             if self._config.get_source_directory():
                 self._entry_source.set_text(self._config.get_source_directory())
             if self._config.get_destination_directory():
                 self._entry_destination.set_text(self._config.get_destination_directory())
- 
+            salt = self._config.get_password_salt()
+            if salt:
+                self._entry_password_salt.set_text(salt)
+            hash_count = self._config.get_password_repeat_hash()
+            self._spinbutton_hash_count.set_value(hash_count)
+
     def show(self):
         """
         displays the window
@@ -135,24 +147,25 @@ class ConfigWindow(object):
         - widget
           widget that triggered the event
         """
-        ok_flag = True
         source = self._entry_source.get_text()
         destination = self._entry_destination.get_text()
-        save_flag = False
+        salt = self._entry_password_salt.get_text()
+        hash_count = self._spinbutton_hash_count.get_value_as_int()
         if len(source) > 0:
             self._config.set_source_directory(source)
-            save_flag = True
         else:
             self._config.set_source_directory(None)
         if len(destination) > 0:
             self._config.set_destination_directory(destination)
-            save_flag = True
         else:
             self._config.set_destination_directory(None)
-        if save_flag:
-            self._config.save()
-        if ok_flag:
-            gtk.main_quit()
+        if len(salt) > 0:
+            self._config.set_password_salt(salt)
+        else:
+            self._config.set_password_salt(None)
+        self._config.set_password_repeat_hash(hash_count)
+        self._config.save()
+        gtk.main_quit()
 
     def on_button_cancel_clicked(self, widget):
         """

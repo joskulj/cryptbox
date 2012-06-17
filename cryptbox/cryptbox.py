@@ -443,12 +443,15 @@ def download():
     """
     check_lock()
     cryptstore = init_cryptstore()
-    set_cryptlog_verbose(True)
-    cryptlog("Download started.")
-    downloader = Downloader(cryptstore)
-    downloader.run()
-    cryptlog("Download finished.")
-    save_cryptlog()
+    if cryptstore:
+        set_cryptlog_verbose(True)
+        cryptlog("Download started.")
+        downloader = Downloader(cryptstore)
+        downloader.run()
+        cryptlog("Download finished.")
+        save_cryptlog()
+    else:
+        print "Login failed."
 
 def upload():
     """
@@ -456,12 +459,15 @@ def upload():
     """
     check_lock()
     cryptstore = init_cryptstore()
-    set_cryptlog_verbose(True)
-    cryptlog("Upload started.")
-    uploader = Uploader(cryptstore)
-    uploader.run()
-    cryptlog("Upload finished.")
-    save_cryptlog()
+    if cryptstore:
+        set_cryptlog_verbose(True)
+        cryptlog("Upload started.")
+        uploader = Uploader(cryptstore)
+        uploader.run()
+        cryptlog("Upload finished.")
+        save_cryptlog()
+    else:
+        print "Login failed."
 
 def destination_list():
     """
@@ -477,7 +483,7 @@ def destination_list():
             print "timestamp: %s" % timestamp
             print ""
     else:
-        print "Accessing cryptstore failed."
+        print "Login failed."
 
 def source_list():
     """
