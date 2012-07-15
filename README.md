@@ -1,6 +1,6 @@
 # cryptbox
 
-Version 0.3
+Version 0.4
 
 Jochen Skulj, jochen@jochenskulj.de
 
@@ -48,10 +48,6 @@ to install the required packages.
 
 ## Installation
 
-**Important note:** *cryptbox* is currently in an early development
-stage. Don't use it in critical environments. If you like the approach
-of *cryptbox* or want to comment, just give me some feedback via e-mail.
-
 Use following commands to download *cryptbox* from the Git repository
 and install it:
 
@@ -87,6 +83,18 @@ files will be synchronized and encrypted to files in the
 *destination directory*. You should place the *destination directory*
 on a sharable resource like your Dropbox folder, a network drive
 or a removable device.
+
+The config dialog allows you to set up a *password salt* and the *hash
+count* for recursive password hashing. Both configuration entries makes
+storing passwords more secure. *cryptbox* needs to store password hashes
+to check the password at the login. Although *cryptbox* uses SHA-512 the
+password hashes may be the target of brute force attacks. A password salt
+and recursive hashing makes cracking password hashing far more difficult.
+So it is very recommended to use this options.
+
+Please note that changing *password salt* and *hash count* affects the
+encryption of files. So you should not change these values by using
+the configuration dialog but use the option for changing the password.
 
 ### Password dialog
 
@@ -144,6 +152,20 @@ stop *cryptbox* first.
 
 When executing these commands the performed actions will be printed
 on stdout and also logged in the *cryptbox* log file.
+
+### Changing the Password
+
+To change the password for encryption the files you should invoke
+
+    chryptbox-runner --new-password
+
+It opens a dialog where you have to enter the new password twice.
+Additionally you can set up a *password salt* and the *hash count* for
+recursive password hashing.
+
+After you entered the new password, *cryptbox* will re-encrypt and
+upload all files. You should stop and restart *cryptbox* instances on
+other machines to login with the new password.
 
 ### Additional options
 

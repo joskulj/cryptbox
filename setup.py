@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name = "cryptbox",
-    version = "0.3",
+    version = "0.4",
     description = "Tool for synchronizing files supporting encryption",
     author = "Jochen Skulj",
     author_email = "jochen@jochenskulj.de",
@@ -9,5 +9,5 @@ setup(name = "cryptbox",
     packages = ["cryptbox"],
     package_data = { "cryptbox" : ["*.glade"] },
     scripts = ["cryptbox-runner"],
-    long_description = """Really long text here.""" 
+    long_description = """Tool for synchronizing files supporting encryption.""" 
 ) 
